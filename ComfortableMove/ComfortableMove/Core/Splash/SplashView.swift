@@ -14,28 +14,21 @@ struct SplashView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            Image("AppLogo")
+            Image("Splash")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 120, height: 120)
+                .frame(width: 304, height: 168)
             
-            VStack(spacing: 8) {
-                Text("맘편한이동")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Text("예비 엄마의 마음 편한 이동")
-                    .font(.body)
-                    .foregroundColor(.white.opacity(0.9))
-            }
+            Text("예비 엄마의 마음 편한 이동")
+                .moveFont(.homeMediumTitle)
+                .foregroundColor(.white.opacity(0.9))
             
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("PrimaryColor"))
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 onSplashCompleted()
             }
         }
