@@ -47,6 +47,6 @@ extension View {
     func moveFont(_ type: FontType) -> some View {
         let font = UIFont(name: type.fontName.rawValue, size: type.fontSize) ?? UIFont.systemFont(ofSize: type.fontSize)
         
-        return self
+        return self.font(Font(font))
     }
 }

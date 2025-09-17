@@ -9,13 +9,26 @@ import SwiftUI
 
 struct RootView: View {
     @State private var showSplash = true
+    @State private var showOnBoarding = false
+    @State private var isFirstLaunch = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") == false
     
     var body: some View {
         Group {
             if showSplash {
-                SplashView();
+                SplashView(onSplashCompleted: {
+                    showSplash = false
+                    if isFirstLaunch {
+                        showOnBoarding = true
+                    }
+                })
+            } else if showOnBoarding && isFirstLaunch {
+                OnBoardingView(onOnBoardingCompleted: {
+                    UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                    showOnBoarding = false
+                    isFirstLaunch = false
+                })
             } else {
-                HomeView();
+                HomeView()
             }
         }
     }
