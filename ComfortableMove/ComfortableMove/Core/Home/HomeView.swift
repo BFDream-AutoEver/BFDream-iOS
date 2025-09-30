@@ -58,15 +58,10 @@ struct HomeView: View {
                     // 버튼 액션
                 }) {
                     ZStack {
-                        Circle()
-                            .fill(Color("PrimaryColor"))
-                            .frame(width: 225, height: 225)
-                            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                        
                         Image("buttonImage")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 120, height: 120)
+                            .frame(width: 225, height: 225)
                     }
                 }
                 .padding(.top, 40)
