@@ -77,7 +77,6 @@ struct HomeView: View {
                     .foregroundColor(.gray)
             }
             
-            // List 형태 메인 컨텐츠
             List {
                 // 첫 번째 칸 - 정류장 정보
                 HStack {
