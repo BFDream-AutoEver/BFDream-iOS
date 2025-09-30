@@ -13,45 +13,45 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: macos-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-  steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+    - name: Select Xcode
+      run: sudo xcode-select -switch /Applications/Xcode_16.0.app
 
-  - name: Select Xcode
-    run: sudo xcode-select -switch /Applications/Xcode_16.0.app
+    - name: Show Xcode version
+      run: xcodebuild -version
 
-  - name: Show Xcode version
-    run: xcodebuild -version
+    - name: Show available destinations
+      run: xcodebuild -scheme ComfortableMove -showdestinations
 
-  - name: Show available destinations
-    run: xcodebuild -scheme ComfortableMove -showdestinations
-
-  - name: Build
-    run: |
-      xcodebuild clean build \
-      -project ComfortableMove.xcodeproj \
-      -scheme ComfortableMove \
-      -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' \
-      CODE_SIGN_IDENTITY="" \
-      CODE_SIGNING_REQUIRED=NO \
-      CODE_SIGNING_ALLOWED=NO
-
-  - name: Run Tests
-    run: |
-      xcodebuild test \
-      -project ComfortableMove.xcodeproj \
-      -scheme ComfortableMove \
-      -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' \
-      CODE_SIGN_IDENTITY="" \
-      CODE_SIGNING_REQUIRED=NO \
-      CODE_SIGNING_ALLOWED=NO
-
-  - name: Archive test results
-    if: always()
-    uses: actions/upload-artifact@v4
-    with:
-      name: test-results
-      path: |
-        ~/Library/Logs/scan/
-        DerivedData/Logs/Test/
+    - name: Build
+      run: |
+        xcodebuild clean build \
+        -project ComfortableMove.xcodeproj \
+        -scheme ComfortableMove \
+        -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' \
+        CODE_SIGN_IDENTITY="" \
+        CODE_SIGNING_REQUIRED=NO \
+        CODE_SIGNING_ALLOWED=NO
+        
+    - name: Run Tests
+      run: |
+        xcodebuild test \
+        -project ComfortableMove.xcodeproj \
+        -scheme ComfortableMove \
+        -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' \
+        CODE_SIGN_IDENTITY="" \
+        CODE_SIGNING_REQUIRED=NO \
+        CODE_SIGNING_ALLOWED=NO
+        
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          ~/Library/Logs/scan/
+          DerivedData/Logs/Test/
