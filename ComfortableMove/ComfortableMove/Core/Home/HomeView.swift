@@ -136,7 +136,7 @@ struct HomeView: View {
             
             Spacer()
         }
-        .background(Color("SecondaryPalette2"))
+        .background(Color("PrimaryColor"))
         .ignoresSafeArea(.all, edges: .top)
     }
 }
