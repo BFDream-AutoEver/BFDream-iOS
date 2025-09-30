@@ -25,12 +25,12 @@ jobs:
       run: xcodebuild -version
 
     - name: Show available destinations
-      run: xcodebuild -scheme ComfortableMove -showdestinations
+      run: xcodebuild -scheme ComfortableMove -project ComfortableMove/ComfortableMove.xcodeproj -showdestinations
 
     - name: Build
       run: |
         xcodebuild clean build \
-        -project ComfortableMove.xcodeproj \
+        -project ComfortableMove/ComfortableMove.xcodeproj \
         -scheme ComfortableMove \
         -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' \
         CODE_SIGN_IDENTITY="" \
@@ -40,7 +40,7 @@ jobs:
     - name: Run Tests
       run: |
         xcodebuild test \
-        -project ComfortableMove.xcodeproj \
+        -project ComfortableMove/ComfortableMove.xcodeproj \
         -scheme ComfortableMove \
         -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' \
         CODE_SIGN_IDENTITY="" \
