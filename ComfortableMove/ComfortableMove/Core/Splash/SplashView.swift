@@ -26,7 +26,7 @@ struct SplashView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color("PrimaryColor"))
+        .background(Color("BFPrimaryColor"))
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 onSplashCompleted()

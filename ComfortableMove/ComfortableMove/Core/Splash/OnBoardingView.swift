@@ -107,7 +107,7 @@ struct OnBoardingView: View {
             }
             .padding(.bottom, 50)
         }
-        .background(Color("PrimaryColor"))
+        .background(Color("BFPrimaryColor"))
     }
     
     @ViewBuilder
