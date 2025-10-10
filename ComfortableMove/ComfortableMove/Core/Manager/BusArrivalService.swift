@@ -16,6 +16,8 @@ class BusArrivalService {
     func getArrivalInfo(stId: Int, busRouteId: Int) async throws -> String? {
         let baseURL = "http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRoute"
 
+        Logger.log(message: "🚌 [API] API_KEY: \(API_KEY)")
+
         var components = URLComponents(string: baseURL)
         components?.queryItems = [
             URLQueryItem(name: "ServiceKey", value: API_KEY),
@@ -25,14 +27,29 @@ class BusArrivalService {
         ]
 
         guard let url = components?.url else {
+            Logger.log(message: "❌ [API] Invalid URL")
             throw NSError(domain: "Invalid URL", code: -1)
         }
 
-        let (data, _) = try await URLSession.shared.data(from: url)
+        Logger.log(message: "🚌 [API] Request URL: \(url.absoluteString)")
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        if let httpResponse = response as? HTTPURLResponse {
+            Logger.log(message: "🚌 [API] Response Status: \(httpResponse.statusCode)")
+        }
+
+        if let xmlString = String(data: data, encoding: .utf8) {
+            Logger.log(message: "🚌 [API] Response XML: \(xmlString)")
+        }
 
         // XML 파싱
         let parser = BusArrivalXMLParser()
         let result = try parser.parse(data: data)
+
+        Logger.log(message: "🚌 [API] Header Code: \(result.serviceResult.msgHeader.headerCd)")
+        Logger.log(message: "🚌 [API] Header Message: \(result.serviceResult.msgHeader.headerMsg)")
+        Logger.log(message: "🚌 [API] Arrival Message: \(result.serviceResult.msgBody?.itemList?.first?.arrmsg1 ?? "없음")")
 
         return result.serviceResult.msgBody?.itemList?.first?.arrmsg1
     }
