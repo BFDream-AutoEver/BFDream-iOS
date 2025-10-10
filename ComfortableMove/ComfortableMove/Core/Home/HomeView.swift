@@ -8,15 +8,20 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var selectedBus: String? = "721"
-    
+    @StateObject private var busStopManager = BusStopManager()
+    @StateObject private var locationManager = LocationManager()
+
+    @State private var selectedRouteId: Int?
+    @State private var busArrivals: [Int: String] = [:] // routeId: 도착메시지
+    @State private var isLoadingArrivals = false
+
     var body: some View {
         VStack(spacing: 0) {
             // 상단 헤더
             VStack(spacing: 0) {
                 // 상태바 영역
                 Rectangle()
-                    .fill(Color("PrimaryColor"))
+                    .fill(Color("BFPrimaryColor"))
                     .frame(height: 44)
                 
                 // 네비게이션 헤더
@@ -47,7 +52,7 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(Color("PrimaryColor"))
+                .background(Color("BFPrimaryColor"))
             }
             
             Spacer()
@@ -76,53 +81,66 @@ struct HomeView: View {
                 // 첫 번째 칸 - 정류장 정보
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("한아름공원")
+                        Text(busStopManager.nearestStop?.stopName ?? "정류장을 찾는 중...")
                             .moveFont(.homeSubTitle)
                             .foregroundColor(.black)
-                        
-                        Text("건대입구역사거리 건대병원 방면")
+
+                        Text(busStopManager.nearestStop?.direction ?? "")
                             .moveFont(.caption)
                             .foregroundColor(.gray)
                     }
-                    
+
                     Spacer()
-                    
+
                     Button(action: {
-                        // 새로고침 액션
+                        refreshBusArrivals()
                     }) {
                         Image(systemName: "arrow.clockwise")
                             .font(.title2)
                             .foregroundColor(.gray)
+                            .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
+                            .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
                     }
+                    .disabled(isLoadingArrivals || busStopManager.nearestStop == nil)
                 }
                 .padding(.vertical, 4)
-                
-                // 버스 번호들
-                ForEach(["721", "147", "2222"], id: \.self) { busNumber in
-                    HStack {
-                        Text(busNumber)
-                            .moveFont(.homeSubTitle)
-                            .foregroundColor(busNumber == "2222" ? .green : .blue)
-                            .fontWeight(.bold)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            selectedBus = busNumber
-                        }) {
-                            Circle()
-                                .fill(selectedBus == busNumber ? (busNumber == "2222" ? Color.green : Color.blue) : Color.gray.opacity(0.3))
-                                .frame(width: 24, height: 24)
-                                .overlay(
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .opacity(selectedBus == busNumber ? 1 : 0)
-                                )
+
+                // 버스 노선들
+                if let routes = busStopManager.nearestStop?.routes {
+                    ForEach(routes, id: \.routeId) { route in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(route.routeName)
+                                    .moveFont(.homeSubTitle)
+                                    .foregroundColor(.blue)
+                                    .fontWeight(.bold)
+
+                                if let arrivalMsg = busArrivals[route.routeId] {
+                                    Text(arrivalMsg)
+                                        .moveFont(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+
+                            Spacer()
+
+                            Button(action: {
+                                selectedRouteId = route.routeId
+                            }) {
+                                Circle()
+                                    .fill(selectedRouteId == route.routeId ? Color.blue : Color.gray.opacity(0.3))
+                                    .frame(width: 24, height: 24)
+                                    .overlay(
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .opacity(selectedRouteId == route.routeId ? 1 : 0)
+                                    )
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .padding(.vertical, 8)
                     }
-                    .padding(.vertical, 8)
                 }
             }
             .listStyle(InsetGroupedListStyle())
@@ -131,8 +149,48 @@ struct HomeView: View {
             
             Spacer()
         }
-        .background(Color("PrimaryColor"))
+        .background(Color("BFPrimaryColor"))
         .ignoresSafeArea(.all, edges: .top)
+        .onAppear {
+            locationManager.requestPermission()
+        }
+        .onChange(of: locationManager.currentLocation) { newLocation in
+            if let location = newLocation {
+                busStopManager.findNearestStop(userLocation: location)
+            }
+        }
+        .onChange(of: busStopManager.nearestStop) { newStop in
+            if newStop != nil {
+                refreshBusArrivals()
+            }
+        }
+    }
+
+    // MARK: - 버스 도착 정보 새로고침
+    private func refreshBusArrivals() {
+        guard let stop = busStopManager.nearestStop else { return }
+
+        isLoadingArrivals = true
+
+        Task {
+            await withTaskGroup(of: (Int, String?).self) { group in
+                for route in stop.routes {
+                    group.addTask {
+                        let arrival = try? await BusArrivalService.shared.getArrivalInfo(
+                            stId: stop.id,
+                            busRouteId: route.routeId
+                        )
+                        return (route.routeId, arrival)
+                    }
+                }
+
+                for await (routeId, arrival) in group {
+                    busArrivals[routeId] = arrival ?? "도착 정보 없음"
+                }
+            }
+
+            isLoadingArrivals = false
+        }
     }
 }
 
