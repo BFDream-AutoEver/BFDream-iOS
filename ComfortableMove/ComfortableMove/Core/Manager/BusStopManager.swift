@@ -13,7 +13,7 @@ class BusStopManager: ObservableObject {
     @Published var isLoading = false
 
     private var allBusStops: [BusStop] = []
-    private var groupedStops: [String: (stop: BusStop, routes: [String])] = [:]
+    private var groupedStops: [String: (stop: BusStop, routes: [StopWithRoutes.RouteInfo])] = [:]
 
     init() {
         loadBusStops()
@@ -79,11 +79,13 @@ class BusStopManager: ObservableObject {
         for busStop in allBusStops {
             let key = "\(busStop.stopName)_\(busStop.x)_\(busStop.y)"
 
+            let routeInfo = StopWithRoutes.RouteInfo(routeId: busStop.routeId, routeName: busStop.routeName)
+
             if var existing = groupedStops[key] {
-                existing.routes.append(busStop.routeName)
+                existing.routes.append(routeInfo)
                 groupedStops[key] = existing
             } else {
-                groupedStops[key] = (stop: busStop, routes: [busStop.routeName])
+                groupedStops[key] = (stop: busStop, routes: [routeInfo])
             }
         }
         Logger.log(message: "✅ \(groupedStops.count)개의 고유 정류장으로 그룹화 완료")
@@ -123,7 +125,7 @@ class BusStopManager: ObservableObject {
 
             // 가장 가까운 정류장 찾기 (이미 그룹화된 데이터 사용)
             var nearestDistance = Double.infinity
-            var nearest: (stop: BusStop, routes: [String])?
+            var nearest: (stop: BusStop, routes: [StopWithRoutes.RouteInfo])?
 
             for (_, group) in self.groupedStops {
                 let distance = group.stop.distance(to: userCoord)
@@ -140,11 +142,11 @@ class BusStopManager: ObservableObject {
                         stopName: nearest.stop.stopName,
                         x: nearest.stop.x,
                         y: nearest.stop.y,
-                        routes: nearest.routes.sorted(),
+                        routes: nearest.routes.sorted(by: { $0.routeName < $1.routeName }),
                         id: nearest.stop.id
                     )
                     Logger.log(message: "📍 가장 가까운 정류장: \(nearest.stop.stopName) (거리: \(String(format: "%.0f", nearestDistance))m)")
-                    Logger.log(message: "🚌 지나는 버스: \(nearest.routes.joined(separator: ", "))")
+                    Logger.log(message: "🚌 지나는 버스: \(nearest.routes.map { $0.routeName }.joined(separator: ", "))")
                 }
                 self.isLoading = false
             }
