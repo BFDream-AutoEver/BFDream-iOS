@@ -14,9 +14,14 @@ struct StopWithRoutes: Identifiable, Equatable {
     let direction: String // 방향 정보
     let x: Double
     let y: Double
-    let routes: [String] // 해당 정류장을 지나는 노선들
-    
-    init(stopName: String, x: Double, y: Double, routes: [String], id: Int) {
+    let routes: [RouteInfo] // 해당 정류장을 지나는 노선들
+
+    struct RouteInfo: Equatable {
+        let routeId: Int
+        let routeName: String
+    }
+
+    init(stopName: String, x: Double, y: Double, routes: [RouteInfo], id: Int) {
         self.id = id
         self.stopName = stopName
         self.direction = "건대입구역사거리 건대병원 방면" // 실제로는 데이터에서 가져와야 함
@@ -24,7 +29,7 @@ struct StopWithRoutes: Identifiable, Equatable {
         self.y = y
         self.routes = routes
     }
-    
+
     static func == (lhs: StopWithRoutes, rhs: StopWithRoutes) -> Bool {
         return lhs.id == rhs.id &&
                lhs.stopName == rhs.stopName &&
