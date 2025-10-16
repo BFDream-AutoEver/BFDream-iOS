@@ -40,7 +40,7 @@ struct HomeView: View {
                     
                     HStack(spacing: 16) {
                         Button(action: {
-                            // 도움말 액션
+                            // 도움말 액션 -> HelpPageView로
                         }) {
                             Image(systemName: "questionmark.circle")
                                 .font(.title2)
@@ -48,7 +48,7 @@ struct HomeView: View {
                         }
                         
                         Button(action: {
-                            // 설정 액션
+                            // 설정 액션 -> InfoView로
                         }) {
                             Image(systemName: "gearshape")
                                 .font(.title2)
