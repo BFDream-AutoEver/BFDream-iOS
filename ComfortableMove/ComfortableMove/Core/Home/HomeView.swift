@@ -10,10 +10,16 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var busStopManager = BusStopManager()
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var bluetoothManager = BluetoothManager()
 
     @State private var selectedRouteId: Int?
     @State private var busArrivals: [Int: String] = [:] // routeId: 도착메시지
     @State private var isLoadingArrivals = false
+
+    // Alert 상태
+    @State private var showConfirmAlert = false
+    @State private var showSuccessAlert = false
+    @State private var showFailureAlert = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -60,7 +66,9 @@ struct HomeView: View {
             VStack(spacing: 20) {
                 // 중앙 버튼
                 Button(action: {
-                    // 버튼 액션
+                    if selectedRouteId != nil {
+                        showConfirmAlert = true
+                    }
                 }) {
                     ZStack {
                         Image("buttonImage")
@@ -162,6 +170,44 @@ struct HomeView: View {
         .onChange(of: busStopManager.nearestStop) { newStop in
             if newStop != nil {
                 refreshBusArrivals()
+            }
+        }
+        .alert(isPresented: $showConfirmAlert) {
+            Alert(
+                title: Text("\(selectedBusName)버스에 배려석 알림을 전송하시겠습니까?"),
+                primaryButton: .destructive(Text("취소")),
+                secondaryButton: .default(Text("확인")) {
+                    sendCourtesySeatNotification()
+                }
+            )
+        }
+        .alert("알림 전송 완료", isPresented: $showSuccessAlert) {
+            Button("확인", role: .cancel) { }
+        }
+        .alert("버스 배려석 알림 전송에 실패하였습니다.", isPresented: $showFailureAlert) {
+            Button("확인", role: .cancel) { }
+        } message: {
+            Text("다시 한번 시도해주세요.")
+        }
+    }
+
+    // MARK: - Computed Properties
+    private var selectedBusName: String {
+        guard let routeId = selectedRouteId,
+              let routes = busStopManager.nearestStop?.routes,
+              let selectedRoute = routes.first(where: { $0.routeId == routeId }) else {
+            return ""
+        }
+        return selectedRoute.routeName
+    }
+
+    // MARK: - 배려석 알림 전송
+    private func sendCourtesySeatNotification() {
+        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName) { success in
+            if success {
+                showSuccessAlert = true
+            } else {
+                showFailureAlert = true
             }
         }
     }
