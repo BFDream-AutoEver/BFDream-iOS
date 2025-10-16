@@ -22,7 +22,6 @@ struct HelpPageView: View {
                 Image("HelpImage")
                     .resizable()
                     .interpolation(.high)
-                    .scaledToFill()
                     .ignoresSafeArea()
             }
 
@@ -39,7 +38,6 @@ struct HelpPageView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 50)
 
                 Spacer()
             }

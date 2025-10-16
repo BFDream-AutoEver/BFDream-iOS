@@ -58,7 +58,7 @@ struct HomeView: View {
                     Image("HomeTitle")
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 30)
+                        .frame(height: 28)
 
                     Spacer()
 
@@ -87,7 +87,7 @@ struct HomeView: View {
             
             Spacer()
             
-            VStack(spacing: 20) {
+            VStack(spacing: 30) {
                 // 중앙 버튼
                 Button(action: {
                     if selectedRouteId != nil {
@@ -98,17 +98,17 @@ struct HomeView: View {
                         Image("buttonImage")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 225, height: 225)
+                            .frame(width: 240, height: 240)
                     }
                 }
                 .padding(.top, 40)
                 
                 // 버튼 아래 텍스트
-                Text("버스 선택 후, 여기를 눌러주세요!")
-                    .moveFont(.caption)
-                    .foregroundColor(.gray)
+                Text("버스 선택 후, 알림을 울려주세요!")
+                    .moveFont(.homeSubTitle)
+                    .foregroundColor(.white)
             }
-            
+
             List {
                 // 첫 번째 칸 - 정류장 정보
                 HStack {
@@ -178,7 +178,7 @@ struct HomeView: View {
             .listStyle(InsetGroupedListStyle())
             .scrollContentBackground(.hidden)
             .padding(.top, 30)
-            
+
             Spacer()
         }
         .background(Color("BFPrimaryColor"))
