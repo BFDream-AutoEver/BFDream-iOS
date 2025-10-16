@@ -8,11 +8,48 @@
 import SwiftUI
 
 struct HelpPageView: View {
+    @Binding var isPresented: Bool
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ZStack {
+            Color.black.opacity(0.7)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    isPresented = false
+                }
+            
+            VStack(spacing: 0) {
+                Image("HelpImage")
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFill()
+                    .ignoresSafeArea()
+            }
+
+            // 상단 헤더 영역
+            VStack {
+                HStack {
+                    Button(action: {
+                        isPresented = false
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title)
+                            .foregroundColor(.white)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 50)
+
+                Spacer()
+            }
+        }
     }
 }
 
 #Preview {
-    HelpPageView()
+    ZStack {
+        Color.blue.ignoresSafeArea()
+        HelpPageView(isPresented: .constant(true))
+    }
 }
