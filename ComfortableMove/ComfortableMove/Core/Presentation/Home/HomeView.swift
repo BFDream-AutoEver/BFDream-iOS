@@ -21,6 +21,29 @@ struct HomeView: View {
     @State private var showSuccessAlert = false
     @State private var showFailureAlert = false
 
+    // 화면 표시 상태
+    @State private var showHelpPage = false
+    @State private var showInfoView = false
+
+    // MARK: - Dummy Data
+    private var dummyStop: StopWithRoutes {
+        StopWithRoutes(
+            stopName: "한아름공원",
+            x: 127.0,
+            y: 37.0,
+            routes: [
+                StopWithRoutes.RouteInfo(routeId: 1, routeName: "721"),
+                StopWithRoutes.RouteInfo(routeId: 2, routeName: "147"),
+                StopWithRoutes.RouteInfo(routeId: 3, routeName: "2222")
+            ],
+            id: 1
+        )
+    }
+
+    private var displayStop: StopWithRoutes? {
+        busStopManager.nearestStop ?? dummyStop
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // 상단 헤더
@@ -40,15 +63,15 @@ struct HomeView: View {
                     
                     HStack(spacing: 16) {
                         Button(action: {
-                            // 도움말 액션 -> HelpPageView로
+                            showHelpPage = true
                         }) {
                             Image(systemName: "questionmark.circle")
                                 .font(.title2)
                                 .foregroundColor(.white)
                         }
-                        
+
                         Button(action: {
-                            // 설정 액션 -> InfoView로
+                            showInfoView = true
                         }) {
                             Image(systemName: "gearshape")
                                 .font(.title2)
@@ -89,11 +112,11 @@ struct HomeView: View {
                 // 첫 번째 칸 - 정류장 정보
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(busStopManager.nearestStop?.stopName ?? "정류장을 찾는 중...")
+                        Text(displayStop?.stopName ?? "정류장을 찾는 중...")
                             .moveFont(.homeSubTitle)
                             .foregroundColor(.black)
 
-                        Text(busStopManager.nearestStop?.direction ?? "")
+                        Text(displayStop?.direction ?? "")
                             .moveFont(.caption)
                             .foregroundColor(.gray)
                     }
@@ -109,12 +132,12 @@ struct HomeView: View {
                             .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
                             .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
                     }
-                    .disabled(isLoadingArrivals || busStopManager.nearestStop == nil)
+                    .disabled(isLoadingArrivals)
                 }
                 .padding(.vertical, 4)
 
                 // 버스 노선들
-                if let routes = busStopManager.nearestStop?.routes {
+                if let routes = displayStop?.routes {
                     ForEach(routes, id: \.routeId) { route in
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
@@ -188,6 +211,12 @@ struct HomeView: View {
             Button("확인", role: .cancel) { }
         } message: {
             Text("다시 한번 시도해주세요.")
+        }
+        .overlay(
+            showHelpPage ? HelpPageView(isPresented: $showHelpPage) : nil
+        )
+        .fullScreenCover(isPresented: $showInfoView) {
+            InfoView()
         }
     }
 
