@@ -55,13 +55,14 @@ struct HomeView: View {
                 
                 // 네비게이션 헤더
                 HStack {
-                    Text("맘편한 이동")
-                        .moveFont(.homeMediumTitle)
-                        .foregroundColor(.white)
-                    
+                    Image("HomeTitle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 30)
+
                     Spacer()
-                    
-                    HStack(spacing: 16) {
+
+                    HStack(spacing: 10) {
                         Button(action: {
                             showHelpPage = true
                         }) {
@@ -79,7 +80,7 @@ struct HomeView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 24)
                 .padding(.vertical, 16)
                 .background(Color("BFPrimaryColor"))
             }
