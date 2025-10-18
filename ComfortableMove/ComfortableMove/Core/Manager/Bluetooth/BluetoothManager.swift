@@ -81,7 +81,7 @@ extension BluetoothManager: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         // Advertisement Data에서 로컬 이름 확인
         let localName = advertisementData[CBAdvertisementDataLocalNameKey] as? String
-        let deviceName = peripheral.name ?? localName
+        let deviceName = localName
 
         Logger.log(message: "🚌 버스 기기 발견!")
         Logger.log(message: "  - peripheral.name: \(peripheral.name ?? "nil")")
