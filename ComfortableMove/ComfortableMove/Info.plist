@@ -4,6 +4,16 @@
 <dict>
 	<key>API_KEY</key>
 	<string>$(API_KEY)</string>
+    <key>BUS_SERVICE_UUID</key>
+    <string>$(BUS_SERVICE_UUID)</string>
+    <key>RX_CHARACTERISTIC_UUID</key>
+    <string>$(RX_CHARACTERISTIC_UUID)</string>
+    <key>TX_CHARACTERISTIC_UUID</key>
+    <string>$(TX_CHARACTERISTIC_UUID)</string>
+    <key>DEVICE_NAME_PREFIX</key>
+    <string>$(DEVICE_NAME_PREFIX)</string>
+    <key>COURTESY_SEAT_MESSAGE</key>
+    <string>$(COURTESY_SEAT_MESSAGE)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>가까운 버스 정류장을 찾기 위해 위치 정보가 필요합니다.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
