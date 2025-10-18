@@ -262,7 +262,7 @@
 		807062582E7A7716004D496D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 8070624E2E7A7714004D496D /* ComfortableMove */;
-			baseConfigurationReferenceRelativePath = App/Resources/Config.xcconfig;
+			baseConfigurationReferenceRelativePath = App/Sources/Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
