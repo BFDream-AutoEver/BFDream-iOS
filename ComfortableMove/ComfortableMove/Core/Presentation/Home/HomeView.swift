@@ -11,20 +11,19 @@ struct HomeView: View {
     @StateObject private var busStopManager = BusStopManager()
     @StateObject private var locationManager = LocationManager()
     @StateObject private var bluetoothManager = BluetoothManager()
-
+    
     @State private var selectedRouteId: Int?
     @State private var busArrivals: [Int: String] = [:] // routeId: 도착메시지
     @State private var isLoadingArrivals = false
-
+    
     // Alert 상태
     @State private var showConfirmAlert = false
     @State private var showSuccessAlert = false
     @State private var showFailureAlert = false
-
+    
     // 화면 표시 상태
     @State private var showHelpPage = false
-    @State private var showInfoView = false
-
+    
     // MARK: - Dummy Data
     private var dummyStop: StopWithRoutes {
         StopWithRoutes(
@@ -39,188 +38,186 @@ struct HomeView: View {
             id: 1
         )
     }
-
+    
     private var displayStop: StopWithRoutes? {
         busStopManager.nearestStop ?? dummyStop
     }
-
+    
     var body: some View {
-        VStack(spacing: 0) {
-            // 상단 헤더
+        NavigationStack {
             VStack(spacing: 0) {
-                // 상태바 영역
-                Rectangle()
-                    .fill(Color("BFPrimaryColor"))
-                    .frame(height: 44)
-                
-                // 네비게이션 헤더
-                HStack {
-                    Image("HomeTitle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 28)
-
-                    Spacer()
-
-                    HStack(spacing: 10) {
-                        Button(action: {
-                            showHelpPage = true
-                        }) {
-                            Image(systemName: "questionmark.circle")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                        }
-
-                        Button(action: {
-                            showInfoView = true
-                        }) {
-                            Image(systemName: "gearshape")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                        }
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
-                .background(Color("BFPrimaryColor"))
-            }
-            
-            Spacer()
-            
-            VStack(spacing: 30) {
-                // 중앙 버튼
-                Button(action: {
-                    if selectedRouteId != nil {
-                        showConfirmAlert = true
-                    }
-                }) {
-                    ZStack {
-                        Image("buttonImage")
+                // 상단 헤더
+                VStack(spacing: 0) {
+                    // 상태바 영역
+                    Rectangle()
+                        .fill(Color("BFPrimaryColor"))
+                        .frame(height: 44)
+                    
+                    // 네비게이션 헤더
+                    HStack {
+                        Image("HomeTitle")
                             .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 240, height: 240)
-                    }
-                }
-                .padding(.top, 40)
-                
-                // 버튼 아래 텍스트
-                Text("버스 선택 후, 알림을 울려주세요!")
-                    .moveFont(.homeSubTitle)
-                    .foregroundColor(.white)
-            }
-
-            List {
-                // 첫 번째 칸 - 정류장 정보
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(displayStop?.stopName ?? "정류장을 찾는 중...")
-                            .moveFont(.homeSubTitle)
-                            .foregroundColor(.black)
-
-                        Text(displayStop?.direction ?? "")
-                            .moveFont(.caption)
-                            .foregroundColor(.gray)
-                    }
-
-                    Spacer()
-
-                    Button(action: {
-                        refreshBusArrivals()
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                            .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
-                            .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
-                    }
-                    .disabled(isLoadingArrivals)
-                }
-                .padding(.vertical, 4)
-
-                // 버스 노선들
-                if let routes = displayStop?.routes {
-                    ForEach(routes, id: \.routeId) { route in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(route.routeName)
-                                    .moveFont(.homeSubTitle)
-                                    .foregroundColor(.blue)
-                                    .fontWeight(.bold)
-
-                                if let arrivalMsg = busArrivals[route.routeId] {
-                                    Text(arrivalMsg)
-                                        .moveFont(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-
-                            Spacer()
-
+                            .scaledToFit()
+                            .frame(height: 28)
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 10) {
                             Button(action: {
-                                selectedRouteId = route.routeId
+                                showHelpPage = true
                             }) {
-                                Circle()
-                                    .fill(selectedRouteId == route.routeId ? Color.blue : Color.gray.opacity(0.3))
-                                    .frame(width: 24, height: 24)
-                                    .overlay(
-                                        Image(systemName: "checkmark")
-                                            .font(.system(size: 12, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .opacity(selectedRouteId == route.routeId ? 1 : 0)
-                                    )
+                                Image(systemName: "questionmark.circle")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            
+                            NavigationLink(destination: InfoView()) {
+                                Image(systemName: "gearshape")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                            }
                         }
-                        .padding(.vertical, 8)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                    .background(Color("BFPrimaryColor"))
+                }
+                
+                Spacer()
+                
+                VStack(spacing: 30) {
+                    // 중앙 버튼
+                    Button(action: {
+                        if selectedRouteId != nil {
+                            showConfirmAlert = true
+                        }
+                    }) {
+                        ZStack {
+                            Image("buttonImage")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 240, height: 240)
+                        }
+                    }
+                    .padding(.top, 40)
+                    
+                    // 버튼 아래 텍스트
+                    Text("버스 선택 후, 알림을 울려주세요!")
+                        .moveFont(.homeSubTitle)
+                        .foregroundColor(.white)
+                }
+                
+                List {
+                    // 첫 번째 칸 - 정류장 정보
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(displayStop?.stopName ?? "정류장을 찾는 중...")
+                                .moveFont(.homeSubTitle)
+                                .foregroundColor(.black)
+                            
+                            Text(displayStop?.direction ?? "")
+                                .moveFont(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            refreshBusArrivals()
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.title2)
+                                .foregroundColor(.gray)
+                                .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
+                                .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
+                        }
+                        .disabled(isLoadingArrivals)
+                    }
+                    .padding(.vertical, 4)
+                    
+                    // 버스 노선들
+                    if let routes = displayStop?.routes {
+                        ForEach(routes, id: \.routeId) { route in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(route.routeName)
+                                        .moveFont(.homeSubTitle)
+                                        .foregroundColor(.blue)
+                                        .fontWeight(.bold)
+                                    
+                                    if let arrivalMsg = busArrivals[route.routeId] {
+                                        Text(arrivalMsg)
+                                            .moveFont(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    selectedRouteId = route.routeId
+                                }) {
+                                    Circle()
+                                        .fill(selectedRouteId == route.routeId ? Color.blue : Color.gray.opacity(0.3))
+                                        .frame(width: 24, height: 24)
+                                        .overlay(
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 12, weight: .bold))
+                                                .foregroundColor(.white)
+                                                .opacity(selectedRouteId == route.routeId ? 1 : 0)
+                                        )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .padding(.vertical, 8)
+                        }
                     }
                 }
+                .listStyle(InsetGroupedListStyle())
+                .scrollContentBackground(.hidden)
+                .padding(.top, 30)
+                
+                Spacer()
             }
-            .listStyle(InsetGroupedListStyle())
-            .scrollContentBackground(.hidden)
-            .padding(.top, 30)
-
-            Spacer()
-        }
-        .background(Color("BFPrimaryColor"))
-        .ignoresSafeArea(.all, edges: .top)
-        .onAppear {
-            locationManager.requestPermission()
-        }
-        .onChange(of: locationManager.currentLocation) { newLocation in
-            if let location = newLocation {
-                busStopManager.findNearestStop(userLocation: location)
+            .background(Color("BFPrimaryColor"))
+            .ignoresSafeArea(.all, edges: .top)
+            .onAppear {
+                locationManager.requestPermission()
             }
-        }
-        .onChange(of: busStopManager.nearestStop) { newStop in
-            if newStop != nil {
-                refreshBusArrivals()
-            }
-        }
-        .alert(isPresented: $showConfirmAlert) {
-            Alert(
-                title: Text("\(selectedBusName)버스에 배려석 알림을 전송하시겠습니까?"),
-                primaryButton: .destructive(Text("취소")),
-                secondaryButton: .default(Text("확인")) {
-                    sendCourtesySeatNotification()
+            .onChange(of: locationManager.currentLocation) { newLocation in
+                if let location = newLocation {
+                    busStopManager.findNearestStop(userLocation: location)
                 }
+            }
+            .onChange(of: busStopManager.nearestStop) { newStop in
+                if newStop != nil {
+                    refreshBusArrivals()
+                }
+            }
+            .alert(isPresented: $showConfirmAlert) {
+                Alert(
+                    title: Text("\(selectedBusName)버스에 배려석 알림을 전송하시겠습니까?"),
+                    primaryButton: .destructive(Text("취소")),
+                    secondaryButton: .default(Text("확인")) {
+                        sendCourtesySeatNotification()
+                    }
+                )
+            }
+            .alert("알림 전송 완료", isPresented: $showSuccessAlert) {
+                Button("확인", role: .cancel) { }
+            }
+            .alert("버스 배려석 알림 전송에 실패하였습니다.", isPresented: $showFailureAlert) {
+                Button("확인", role: .cancel) { }
+            } message: {
+                Text("다시 한번 시도해주세요.")
+            }
+            .overlay(
+                showHelpPage ? HelpPageView(isPresented: $showHelpPage) : nil
             )
-        }
-        .alert("알림 전송 완료", isPresented: $showSuccessAlert) {
-            Button("확인", role: .cancel) { }
-        }
-        .alert("버스 배려석 알림 전송에 실패하였습니다.", isPresented: $showFailureAlert) {
-            Button("확인", role: .cancel) { }
-        } message: {
-            Text("다시 한번 시도해주세요.")
-        }
-        .overlay(
-            showHelpPage ? HelpPageView(isPresented: $showHelpPage) : nil
-        )
-        .fullScreenCover(isPresented: $showInfoView) {
-            InfoView()
+            .navigationBarHidden(true)
         }
     }
-
+    
     // MARK: - Computed Properties
     private var selectedBusName: String {
         guard let routeId = selectedRouteId,
@@ -230,7 +227,7 @@ struct HomeView: View {
         }
         return selectedRoute.routeName
     }
-
+    
     // MARK: - 배려석 알림 전송
     private func sendCourtesySeatNotification() {
         bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName) { success in
@@ -241,13 +238,13 @@ struct HomeView: View {
             }
         }
     }
-
+    
     // MARK: - 버스 도착 정보 새로고침
     private func refreshBusArrivals() {
         guard let stop = busStopManager.nearestStop else { return }
-
+        
         isLoadingArrivals = true
-
+        
         Task {
             await withTaskGroup(of: (Int, String?).self) { group in
                 for route in stop.routes {
@@ -259,12 +256,12 @@ struct HomeView: View {
                         return (route.routeId, arrival)
                     }
                 }
-
+                
                 for await (routeId, arrival) in group {
                     busArrivals[routeId] = arrival ?? "도착 정보 없음"
                 }
             }
-
+            
             isLoadingArrivals = false
         }
     }
