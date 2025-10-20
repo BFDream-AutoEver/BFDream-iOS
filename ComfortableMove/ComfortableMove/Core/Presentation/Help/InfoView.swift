@@ -92,24 +92,8 @@ struct InfoView: View {
         }
         .background(Color("BFPrimaryColor"))
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                HStack(spacing: 8) {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                    }
-
-                    Text("앱정보")
-                        .moveFont(.homeMediumTitle)
-                        .foregroundColor(.white)
-                }
-            }
-        }
+        .navigationBarBackButtonHidden(false)
+        .navigationTitle("앱정보")
         .toolbarBackground(Color("BFPrimaryColor"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
