@@ -43,7 +43,7 @@ struct InfoView: View {
 
                 // 앱 문의
                 Button(action: {
-                    if let url = URL(string: "https://github.com/ParkSeongGeun") {
+                    if let url = URL(string: "https://forms.gle/rnSD44sUEuy1nLaH6") {
                         UIApplication.shared.open(url)
                     }
                 }) {
@@ -66,7 +66,7 @@ struct InfoView: View {
 
                 // 개인정보 처리 방침 및 이용약관
                 Button(action: {
-                    if let url = URL(string: "https://github.com/ParkSeongGeun") {
+                    if let url = URL(string: "https://important-hisser-903.notion.site/10-22-ver-29a65f12c44480b6b591e726c5c80f89?source=copy_link") {
                         UIApplication.shared.open(url)
                     }
                 }) {
