@@ -21,22 +21,27 @@ struct OnBoardingView: View {
         OnBoardingData(
             image: "Onboard1",
             title: "안녕하세요 :)\n맘편한 이동입니다",
-            subtitle: "임산부 돌봄의 번거로움 없는 안전한 버스 배차의 탑승을\n도와드릴게요!"
+            subtitle: "임산부 분들의 편안하고 안전한 버스 배려석 탑승을\n도와드릴게요!"
         ),
         OnBoardingData(
             image: "Onboard2", 
-            title: "부담없는 제로",
-            subtitle: "탑승하려는 버스의 입석부 배차에 일반인들을 볼 수 있어요!\n이로 인해 탑승객들의 지연스러운 배차적 일정감\n가능합니다."
+            title: "부담감 제로",
+            subtitle: "탑승하려는 버스의 임산부 배려석에 알림을 줄 수 있어요!\n이로 인해 탑승객들의 자연스러운 배려석 양보가\n가능합니다."
         ),
         OnBoardingData(
             image: "Onboard3",
             title: "쉽고 간편하게",
-            subtitle: "GPS와 실시간 버스 데이터 기반으로\n주변 정류장의 탑승할 버스 도착 정보를 확인하고,\n일정한 줄임맞춤 해!"
+            subtitle: "GPS와 실시간 버스 데이터 기반으로\n주변 정류장의 탑승할 버스 도착 정보를 확인하고,\n알림만 울리면 끝!"
         ),
         OnBoardingData(
             image: "Onboard4",
             title: "임산부들만 이용가능",
-            subtitle: "임산부 신고 후 본 서비스를 이용하실 수 있습니다.\n현재 일반 승차 서비스는 서비스 준비중입니다."
+            subtitle: "임산부 신고 후, 해당 서비스를 이용하실 수 있습니다.\n임산부 신고는 e보건소 혹은 직접 방문, 아이마중 어플 등을 통해 가능합니다."
+        ),
+        OnBoardingData(
+            image: "InfoImage",
+            title: "맘편한 이동을 위한\n필수 접근권한 안내",
+            subtitle: ""
         )
     ]
     
@@ -44,28 +49,87 @@ struct OnBoardingView: View {
         VStack {
             TabView(selection: $currentPage) {
                 ForEach(0..<onboardingData.count, id: \.self) { index in
-                    VStack(spacing: 40) {
-                        Spacer()
-                        
-                        Image(onboardingData[index].image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(height: 300)
-                        
-                        VStack(spacing: 16) {
+                    if (index == onboardingData.count - 1) {
+                        VStack(spacing: 40) {
+                            Spacer()
+
+                            Image(onboardingData[index].image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 200)
+
                             titleView(for: index)
                                 .multilineTextAlignment(.center)
-                            
-                            Text(onboardingData[index].subtitle)
-                                .moveFont(.homeSubTitle)
-                                .foregroundColor(.white)
-                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 22)
+
+                            HStack(spacing: 40) {
+                                // 위치 권한
+                                VStack {
+                                    Image("distance")
+                                        .resizable()
+                                        .frame(width: 48, height: 48)
+                                        .foregroundColor(.white)
+                                        .padding(12)
+
+                                    Text("위치")
+                                        .moveFont(.homeSubTitle)
+                                        .foregroundColor(.white)
+                                        .fontWeight(.bold)
+
+                                    Text("현재 버스정류장 및\n탑승할 버스 안내")
+                                        .moveFont(.caption)
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.center)
+                                }
+
+                                // 블루투스 권한
+                                VStack {
+                                    Image("bluetooth")
+                                        .resizable()
+                                        .frame(width: 48, height: 48)
+                                        .foregroundColor(.white)
+                                        .padding(12)
+
+                                    Text("블루투스")
+                                        .moveFont(.homeSubTitle)
+                                        .foregroundColor(.white)
+                                        .fontWeight(.bold)
+
+                                    Text("버스 내부 배려석 알림\n기기 통신")
+                                        .moveFont(.caption)
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.center)
+                                }
+                            }
+                            .padding(.horizontal, 40)
+
+                            Spacer()
                         }
-                        .padding(.horizontal, 40)
-                        
-                        Spacer()
+                        .tag(index)
+                    } else {
+                        VStack(spacing: 40) {
+                            Spacer()
+                            
+                            Image(onboardingData[index].image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 300)
+                            
+                            VStack(spacing: 16) {
+                                titleView(for: index)
+                                    .multilineTextAlignment(.center)
+                                
+                                Text(onboardingData[index].subtitle)
+                                    .moveFont(.homeSubTitle)
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.horizontal, 22)
+                            
+                            Spacer()
+                        }
+                        .tag(index)
                     }
-                    .tag(index)
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -126,6 +190,9 @@ struct OnBoardingView: View {
                 .moveFont(.homeTitle)
         case 3:
             Text(createAttributedString(from: title, highlight: "임산부", color: Color("CircularBus")))
+                .moveFont(.homeTitle)
+        case 4:
+            Text(createAttributedString(from: title, highlight: "맘편한 이동", color: Color("MainPalette1")))
                 .moveFont(.homeTitle)
         default:
             Text(title)
