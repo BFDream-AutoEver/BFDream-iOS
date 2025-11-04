@@ -24,6 +24,9 @@ struct HomeView: View {
     // 화면 표시 상태
     @State private var showHelpPage = false
     
+    // 버튼 상태
+    @State private var isButtonTapped = false
+    
     // MARK: - Dummy Data
     private var dummyStop: StopWithRoutes {
         StopWithRoutes(
@@ -88,12 +91,12 @@ struct HomeView: View {
                 VStack(spacing: 30) {
                     // 중앙 버튼
                     Button(action: {
-                        if selectedRouteId != nil {
+                        if selectedRouteId != nil && isButtonTapped {
                             showConfirmAlert = true
                         }
                     }) {
                         ZStack {
-                            Image("buttonImage")
+                            Image(isButtonTapped ? "buttonTappedImage" : "buttonImage")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 240, height: 240)
@@ -102,7 +105,7 @@ struct HomeView: View {
                     .padding(.top, 40)
                     
                     // 버튼 아래 텍스트
-                    Text("버스 선택 후, 알림을 울려주세요!")
+                    Text(isButtonTapped ? "선택 완료! 알림을 울려주세요" : "버스 선택 후, 알림을 울려주세요!")
                         .moveFont(.homeSubTitle)
                         .foregroundColor(.white)
                 }
@@ -139,23 +142,34 @@ struct HomeView: View {
                     if let routes = displayStop?.routes {
                         ForEach(routes, id: \.routeId) { route in
                             HStack {
+                                Image(systemName: "bus")
+                                    .foregroundColor(.blue)
+
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(route.routeName)
                                         .moveFont(.homeSubTitle)
                                         .foregroundColor(.blue)
                                         .fontWeight(.bold)
-                                    
+
                                     if let arrivalMsg = busArrivals[route.routeId] {
                                         Text(arrivalMsg)
                                             .moveFont(.caption)
                                             .foregroundColor(.gray)
                                     }
                                 }
-                                
+
                                 Spacer()
                                 
                                 Button(action: {
-                                    selectedRouteId = route.routeId
+                                    // 새로운 노선 선택 시
+                                    if selectedRouteId != route.routeId {
+                                        selectedRouteId = route.routeId
+                                        isButtonTapped = true  // 리스트 선택 시 중앙 버튼 이미지/텍스트 변경
+                                    } else {
+                                        // 이미 선택된 것을 다시 누르면 선택 해제
+                                        selectedRouteId = nil
+                                        isButtonTapped = false
+                                    }
                                 }) {
                                     Circle()
                                         .fill(selectedRouteId == route.routeId ? Color.blue : Color.gray.opacity(0.3))
@@ -170,6 +184,7 @@ struct HomeView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                             .padding(.vertical, 8)
+                            .alignmentGuide(.listRowSeparatorLeading) { d in d[.leading] }
                         }
                     }
                 }
@@ -197,7 +212,9 @@ struct HomeView: View {
             .alert(isPresented: $showConfirmAlert) {
                 Alert(
                     title: Text("\(selectedBusName)버스에 배려석 알림을 전송하시겠습니까?"),
-                    primaryButton: .destructive(Text("취소")),
+                    primaryButton: .destructive(Text("취소")) {
+                        resetButtonState()
+                    },
                     secondaryButton: .default(Text("확인")) {
                         sendCourtesySeatNotification()
                     }
@@ -230,13 +247,21 @@ struct HomeView: View {
     
     // MARK: - 배려석 알림 전송
     private func sendCourtesySeatNotification() {
-        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName) { success in
+        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName) {  success in
             if success {
                 showSuccessAlert = true
             } else {
                 showFailureAlert = true
             }
+            // 알림 전송 완료/실패 후 초기화
+            resetButtonState()
         }
+    }
+    
+    // MARK: - 버튼 상태 초기화
+    private func resetButtonState() {
+        isButtonTapped = false
+        selectedRouteId = nil
     }
     
     // MARK: - 버스 도착 정보 새로고침
