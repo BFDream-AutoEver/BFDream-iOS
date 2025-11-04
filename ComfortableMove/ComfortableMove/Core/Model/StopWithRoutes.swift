@@ -10,8 +10,9 @@ import Foundation
 // MARK: - 정류장별 버스 노선 그룹
 struct StopWithRoutes: Identifiable, Equatable {
     let id: Int
+    let arsId: String      // 정류소 고유번호 (API 호출용)
     let stopName: String
-    let direction: String // 방향 정보
+    let direction: String  // 방향 정보
     let x: Double
     let y: Double
     let routes: [RouteInfo] // 해당 정류장을 지나는 노선들
@@ -21,8 +22,9 @@ struct StopWithRoutes: Identifiable, Equatable {
         let routeName: String
     }
 
-    init(stopName: String, x: Double, y: Double, routes: [RouteInfo], id: Int) {
+    init(stopName: String, arsId: String, x: Double, y: Double, routes: [RouteInfo], id: Int) {
         self.id = id
+        self.arsId = arsId
         self.stopName = stopName
         self.direction = "건대입구역사거리 건대병원 방면" // 실제로는 데이터에서 가져와야 함
         self.x = x
@@ -32,6 +34,7 @@ struct StopWithRoutes: Identifiable, Equatable {
 
     static func == (lhs: StopWithRoutes, rhs: StopWithRoutes) -> Bool {
         return lhs.id == rhs.id &&
+               lhs.arsId == rhs.arsId &&
                lhs.stopName == rhs.stopName &&
                lhs.routes == rhs.routes
     }

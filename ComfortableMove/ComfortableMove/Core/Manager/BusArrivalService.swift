@@ -12,18 +12,17 @@ class BusArrivalService {
 
     private init() {}
 
-    /// 버스 도착 정보 조회
-    func getArrivalInfo(stId: Int, busRouteId: Int) async throws -> String? {
-        let baseURL = "http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRoute"
+    /// 정류소별 모든 버스 도착 정보 조회
+    func getStationArrivalInfo(arsId: String) async throws -> [BusArrivalItem] {
+        let baseURL = "http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid"
 
         Logger.log(message: "🚌 [API] API_KEY: \(API_KEY)")
 
         var components = URLComponents(string: baseURL)
         components?.queryItems = [
             URLQueryItem(name: "ServiceKey", value: API_KEY),
-            URLQueryItem(name: "stId", value: "\(stId)"),
-            URLQueryItem(name: "busRouteId", value: "\(busRouteId)"),
-            URLQueryItem(name: "ord", value: "1")
+            URLQueryItem(name: "arsId", value: arsId),
+            URLQueryItem(name: "resultType", value: "json")
         ]
 
         guard let url = components?.url else {
@@ -39,72 +38,22 @@ class BusArrivalService {
             Logger.log(message: "🚌 [API] Response Status: \(httpResponse.statusCode)")
         }
 
-        if let xmlString = String(data: data, encoding: .utf8) {
-            Logger.log(message: "🚌 [API] Response XML: \(xmlString)")
+        // JSON 디코딩
+        let decoder = JSONDecoder()
+        let result = try decoder.decode(BusArrivalResponse.self, from: data)
+
+        Logger.log(message: "🚌 [API] Header Code: \(result.msgHeader.headerCd)")
+        Logger.log(message: "🚌 [API] Header Message: \(result.msgHeader.headerMsg)")
+        Logger.log(message: "🚌 [API] Item Count: \(result.msgHeader.itemCount)")
+
+        guard result.msgHeader.isSuccess else {
+            Logger.log(message: "❌ [API] API Error: \(result.msgHeader.headerMsg)")
+            return []
         }
 
-        // XML 파싱
-        let parser = BusArrivalXMLParser()
-        let result = try parser.parse(data: data)
+        let items = result.msgBody.itemList ?? []
+        Logger.log(message: "🚌 [API] Retrieved \(items.count) bus routes")
 
-        Logger.log(message: "🚌 [API] Header Code: \(result.serviceResult.msgHeader.headerCd)")
-        Logger.log(message: "🚌 [API] Header Message: \(result.serviceResult.msgHeader.headerMsg)")
-        Logger.log(message: "🚌 [API] Arrival Message: \(result.serviceResult.msgBody?.itemList?.first?.arrmsg1 ?? "없음")")
-
-        return result.serviceResult.msgBody?.itemList?.first?.arrmsg1
-    }
-}
-
-// MARK: - XML Parser
-class BusArrivalXMLParser: NSObject, XMLParserDelegate {
-    private var currentElement = ""
-    private var currentArrmsg1: String?
-    private var currentHeaderCd: String?
-    private var currentHeaderMsg: String?
-    private var items: [BusArrivalItem] = []
-
-    func parse(data: Data) throws -> BusArrivalResponse {
-        let parser = XMLParser(data: data)
-        parser.delegate = self
-        parser.parse()
-
-        let msgHeader = MsgHeader(
-            headerCd: currentHeaderCd ?? "",
-            headerMsg: currentHeaderMsg ?? ""
-        )
-
-        let msgBody = items.isEmpty ? nil : MsgBody(itemList: items)
-        let serviceResult = ServiceResult(msgHeader: msgHeader, msgBody: msgBody)
-
-        return BusArrivalResponse(serviceResult: serviceResult)
-    }
-
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
-        currentElement = elementName
-        if elementName == "itemList" {
-            currentArrmsg1 = nil
-        }
-    }
-
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
-        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-
-        switch currentElement {
-        case "headerCd":
-            currentHeaderCd = trimmed
-        case "headerMsg":
-            currentHeaderMsg = trimmed
-        case "arrmsg1":
-            currentArrmsg1 = trimmed
-        default:
-            break
-        }
-    }
-
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        if elementName == "itemList" {
-            items.append(BusArrivalItem(arrmsg1: currentArrmsg1))
-        }
+        return items
     }
 }

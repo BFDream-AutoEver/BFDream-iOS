@@ -6,15 +6,17 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct HomeView: View {
-    @StateObject private var busStopManager = BusStopManager()
     @StateObject private var locationManager = LocationManager()
     @StateObject private var bluetoothManager = BluetoothManager()
-    
-    @State private var selectedRouteId: Int?
-    @State private var busArrivals: [Int: String] = [:] // routeId: 도착메시지
+
+    @State private var selectedRouteName: String?
+    @State private var busArrivals: [String: BusArrivalItem] = [:] // routeName: 도착정보
     @State private var isLoadingArrivals = false
+    @State private var nearestStation: StationItem? // 가장 가까운 정류소
+    @State private var isLoadingStation = false
     
     // Alert 상태
     @State private var showConfirmAlert = false
@@ -27,24 +29,6 @@ struct HomeView: View {
     // 버튼 상태
     @State private var isButtonTapped = false
     
-    // MARK: - Dummy Data
-    private var dummyStop: StopWithRoutes {
-        StopWithRoutes(
-            stopName: "한아름공원",
-            x: 127.0,
-            y: 37.0,
-            routes: [
-                StopWithRoutes.RouteInfo(routeId: 1, routeName: "721"),
-                StopWithRoutes.RouteInfo(routeId: 2, routeName: "147"),
-                StopWithRoutes.RouteInfo(routeId: 3, routeName: "2222")
-            ],
-            id: 1
-        )
-    }
-    
-    private var displayStop: StopWithRoutes? {
-        busStopManager.nearestStop ?? dummyStop
-    }
     
     var body: some View {
         NavigationStack {
@@ -91,7 +75,7 @@ struct HomeView: View {
                 VStack(spacing: 30) {
                     // 중앙 버튼
                     Button(action: {
-                        if selectedRouteId != nil && isButtonTapped {
+                        if selectedRouteName != nil && isButtonTapped {
                             showConfirmAlert = true
                         }
                     }) {
@@ -114,13 +98,15 @@ struct HomeView: View {
                     // 첫 번째 칸 - 정류장 정보
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(displayStop?.stopName ?? "정류장을 찾는 중...")
+                            Text(nearestStation?.stationNm ?? "정류장을 찾는 중...")
                                 .moveFont(.homeSubTitle)
                                 .foregroundColor(.black)
-                            
-                            Text(displayStop?.direction ?? "")
-                                .moveFont(.caption)
-                                .foregroundColor(.gray)
+
+                            if let station = nearestStation {
+                                Text("정류소번호: \(station.arsId)")
+                                    .moveFont(.caption)
+                                    .foregroundColor(.gray)
+                            }
                         }
                         
                         Spacer()
@@ -138,47 +124,61 @@ struct HomeView: View {
                     }
                     .padding(.vertical, 4)
                     
-                    // 버스 노선들
-                    if let routes = displayStop?.routes {
-                        ForEach(routes, id: \.routeId) { route in
+                    // 버스 노선들 (API에서 가져온 실시간 정보)
+                    ForEach(Array(busArrivals.keys.sorted()), id: \.self) { routeName in
+                        if let arrivalInfo = busArrivals[routeName] {
                             HStack {
                                 Image(systemName: "bus")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(arrivalInfo.busType.color)
 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(route.routeName)
-                                        .moveFont(.homeSubTitle)
-                                        .foregroundColor(.blue)
-                                        .fontWeight(.bold)
+                                    HStack(spacing: 4) {
+                                        Text(routeName)
+                                            .moveFont(.homeSubTitle)
+                                            .foregroundColor(arrivalInfo.busType.color)
+                                            .fontWeight(.bold)
 
-                                    if let arrivalMsg = busArrivals[route.routeId] {
+                                        if !arrivalInfo.busType.displayName.isEmpty {
+                                            Text(arrivalInfo.busType.displayName)
+                                                .moveFont(.caption)
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+
+                                    if let arrivalMsg = arrivalInfo.arrmsg1 {
                                         Text(arrivalMsg)
                                             .moveFont(.caption)
                                             .foregroundColor(.gray)
                                     }
+
+                                    if let direction = arrivalInfo.adirection {
+                                        Text("\(direction) 방면")
+                                            .moveFont(.caption)
+                                            .foregroundColor(.gray.opacity(0.8))
+                                    }
                                 }
 
                                 Spacer()
-                                
+
                                 Button(action: {
                                     // 새로운 노선 선택 시
-                                    if selectedRouteId != route.routeId {
-                                        selectedRouteId = route.routeId
+                                    if selectedRouteName != routeName {
+                                        selectedRouteName = routeName
                                         isButtonTapped = true  // 리스트 선택 시 중앙 버튼 이미지/텍스트 변경
                                     } else {
                                         // 이미 선택된 것을 다시 누르면 선택 해제
-                                        selectedRouteId = nil
+                                        selectedRouteName = nil
                                         isButtonTapped = false
                                     }
                                 }) {
                                     Circle()
-                                        .fill(selectedRouteId == route.routeId ? Color.blue : Color.gray.opacity(0.3))
+                                        .fill(selectedRouteName == routeName ? arrivalInfo.busType.color : Color.gray.opacity(0.3))
                                         .frame(width: 24, height: 24)
                                         .overlay(
                                             Image(systemName: "checkmark")
                                                 .font(.system(size: 12, weight: .bold))
                                                 .foregroundColor(.white)
-                                                .opacity(selectedRouteId == route.routeId ? 1 : 0)
+                                                .opacity(selectedRouteName == routeName ? 1 : 0)
                                         )
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -190,6 +190,8 @@ struct HomeView: View {
                 }
                 .listStyle(InsetGroupedListStyle())
                 .scrollContentBackground(.hidden)
+                .scrollDisabled(busArrivals.count <= 3)
+                .scrollIndicators(.hidden)
                 .padding(.top, 30)
                 
                 Spacer()
@@ -201,11 +203,11 @@ struct HomeView: View {
             }
             .onChange(of: locationManager.currentLocation) { newLocation in
                 if let location = newLocation {
-                    busStopManager.findNearestStop(userLocation: location)
+                    findNearestStation(location: location)
                 }
             }
-            .onChange(of: busStopManager.nearestStop) { newStop in
-                if newStop != nil {
+            .onChange(of: nearestStation) { newStation in
+                if newStation != nil {
                     refreshBusArrivals()
                 }
             }
@@ -237,12 +239,7 @@ struct HomeView: View {
     
     // MARK: - Computed Properties
     private var selectedBusName: String {
-        guard let routeId = selectedRouteId,
-              let routes = busStopManager.nearestStop?.routes,
-              let selectedRoute = routes.first(where: { $0.routeId == routeId }) else {
-            return ""
-        }
-        return selectedRoute.routeName
+        return selectedRouteName ?? ""
     }
     
     // MARK: - 배려석 알림 전송
@@ -261,32 +258,55 @@ struct HomeView: View {
     // MARK: - 버튼 상태 초기화
     private func resetButtonState() {
         isButtonTapped = false
-        selectedRouteId = nil
+        selectedRouteName = nil
     }
     
+    // MARK: - 가장 가까운 정류소 찾기
+    private func findNearestStation(location: CLLocation) {
+        isLoadingStation = true
+
+        Task {
+            do {
+                let stations = try await BusStopService.shared.getNearbyStations(location: location, radius: 500)
+
+                // 가장 가까운 정류소 선택
+                if let nearest = stations.first {
+                    nearestStation = nearest
+                    Logger.log(message: "📍 [HomeView] Nearest station: \(nearest.stationNm) (\(nearest.dist)m)")
+                } else {
+                    Logger.log(message: "⚠️ [HomeView] No stations found within radius")
+                    nearestStation = nil
+                }
+            } catch {
+                Logger.log(message: "❌ [HomeView] Failed to find nearest station: \(error)")
+                nearestStation = nil
+            }
+
+            isLoadingStation = false
+        }
+    }
+
     // MARK: - 버스 도착 정보 새로고침
     private func refreshBusArrivals() {
-        guard let stop = busStopManager.nearestStop else { return }
-        
+        guard let station = nearestStation else { return }
+
         isLoadingArrivals = true
-        
+
         Task {
-            await withTaskGroup(of: (Int, String?).self) { group in
-                for route in stop.routes {
-                    group.addTask {
-                        let arrival = try? await BusArrivalService.shared.getArrivalInfo(
-                            stId: stop.id,
-                            busRouteId: route.routeId
-                        )
-                        return (route.routeId, arrival)
-                    }
+            do {
+                let items = try await BusArrivalService.shared.getStationArrivalInfo(arsId: station.arsId)
+
+                // 딕셔너리로 변환
+                var newArrivals: [String: BusArrivalItem] = [:]
+                for item in items {
+                    newArrivals[item.rtNm] = item
                 }
-                
-                for await (routeId, arrival) in group {
-                    busArrivals[routeId] = arrival ?? "도착 정보 없음"
-                }
+
+                busArrivals = newArrivals
+            } catch {
+                Logger.log(message: "❌ [HomeView] Failed to fetch arrival info: \(error)")
             }
-            
+
             isLoadingArrivals = false
         }
     }

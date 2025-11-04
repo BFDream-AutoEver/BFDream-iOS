@@ -1,0 +1,62 @@
+//
+//  BusStopService.swift
+//  ComfortableMove
+//
+//  Created by Claude Code on 11/5/25.
+//
+
+import Foundation
+import CoreLocation
+
+class BusStopService {
+    static let shared = BusStopService()
+
+    private init() {}
+
+    /// 위치 기반 주변 정류소 조회
+    func getNearbyStations(location: CLLocation, radius: Int = 500) async throws -> [StationItem] {
+        let baseURL = "http://ws.bus.go.kr/api/rest/stationinfo/getStationByPos"
+
+        Logger.log(message: "🚏 [API] Searching stations near (\(location.coordinate.latitude), \(location.coordinate.longitude))")
+
+        var components = URLComponents(string: baseURL)
+        components?.queryItems = [
+            URLQueryItem(name: "ServiceKey", value: API_KEY),
+            URLQueryItem(name: "tmX", value: "\(location.coordinate.longitude)"),
+            URLQueryItem(name: "tmY", value: "\(location.coordinate.latitude)"),
+            URLQueryItem(name: "radius", value: "\(radius)"),
+            URLQueryItem(name: "resultType", value: "json")
+        ]
+
+        guard let url = components?.url else {
+            Logger.log(message: "❌ [API] Invalid URL")
+            throw NSError(domain: "Invalid URL", code: -1)
+        }
+
+        Logger.log(message: "🚏 [API] Request URL: \(url.absoluteString)")
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        if let httpResponse = response as? HTTPURLResponse {
+            Logger.log(message: "🚏 [API] Response Status: \(httpResponse.statusCode)")
+        }
+
+        // JSON 디코딩
+        let decoder = JSONDecoder()
+        let result = try decoder.decode(StationByPosResponse.self, from: data)
+
+        Logger.log(message: "🚏 [API] Header Code: \(result.msgHeader.headerCd)")
+        Logger.log(message: "🚏 [API] Header Message: \(result.msgHeader.headerMsg)")
+        Logger.log(message: "🚏 [API] Item Count: \(result.msgHeader.itemCount)")
+
+        guard result.msgHeader.isSuccess else {
+            Logger.log(message: "❌ [API] API Error: \(result.msgHeader.headerMsg)")
+            return []
+        }
+
+        let stations = result.msgBody.itemList ?? []
+        Logger.log(message: "🚏 [API] Found \(stations.count) stations within \(radius)m")
+
+        return stations
+    }
+}
