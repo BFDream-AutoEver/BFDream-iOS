@@ -69,9 +69,7 @@ struct HomeView: View {
                     .padding(.vertical, 16)
                     .background(Color("BFPrimaryColor"))
                 }
-                
-                Spacer()
-                
+
                 VStack(spacing: 30) {
                     // 중앙 버튼
                     Button(action: {
@@ -86,110 +84,122 @@ struct HomeView: View {
                                 .frame(width: 240, height: 240)
                         }
                     }
-                    .padding(.top, 40)
-                    
+
                     // 버튼 아래 텍스트
                     Text(isButtonTapped ? "선택 완료! 알림을 울려주세요" : "버스 선택 후, 알림을 울려주세요!")
                         .moveFont(.homeSubTitle)
                         .foregroundColor(.white)
                 }
+                .padding(.top, 48)
                 
-                List {
-                    // 첫 번째 칸 - 정류장 정보
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(nearestStation?.stationNm ?? "정류장을 찾는 중...")
-                                .moveFont(.homeSubTitle)
-                                .foregroundColor(.black)
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // 첫 번째 칸 - 정류장 정보
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(nearestStation?.stationNm ?? "정류장을 찾는 중...")
+                                    .moveFont(.homeSubTitle)
+                                    .foregroundColor(.black)
 
-                            Text("사용자와 최근접의 버스정류장 정보가 표시됩니다.")
-                                .moveFont(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            refreshBusArrivals()
-                        }) {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.title2)
-                                .foregroundColor(.gray)
-                                .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
-                                .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
-                        }
-                        .disabled(isLoadingArrivals)
-                    }
-                    .padding(.vertical, 4)
-                    
-                    // 버스 노선들 (API에서 가져온 실시간 정보)
-                    ForEach(Array(busArrivals.keys.sorted()), id: \.self) { routeName in
-                        if let arrivalInfo = busArrivals[routeName] {
-                            HStack {
-                                Image(systemName: "bus")
-                                    .foregroundColor(arrivalInfo.busType.color)
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack(spacing: 4) {
-                                        Text(routeName)
-                                            .moveFont(.homeSubTitle)
-                                            .foregroundColor(arrivalInfo.busType.color)
-                                            .fontWeight(.bold)
-
-                                        if !arrivalInfo.busType.displayName.isEmpty {
-                                            Text(arrivalInfo.busType.displayName)
-                                                .moveFont(.caption)
-                                                .foregroundColor(.gray)
-                                        }
-                                    }
-
-                                    if let arrivalMsg = arrivalInfo.arrmsg1 {
-                                        Text(arrivalMsg)
-                                            .moveFont(.caption)
-                                            .foregroundColor(.gray)
-                                    }
-
-                                    if let direction = arrivalInfo.adirection {
-                                        Text("\(direction) 방면")
-                                            .moveFont(.caption)
-                                            .foregroundColor(.gray.opacity(0.8))
-                                    }
-                                }
-
-                                Spacer()
-
-                                Button(action: {
-                                    // 새로운 노선 선택 시
-                                    if selectedRouteName != routeName {
-                                        selectedRouteName = routeName
-                                        isButtonTapped = true  // 리스트 선택 시 중앙 버튼 이미지/텍스트 변경
-                                    } else {
-                                        // 이미 선택된 것을 다시 누르면 선택 해제
-                                        selectedRouteName = nil
-                                        isButtonTapped = false
-                                    }
-                                }) {
-                                    Circle()
-                                        .fill(selectedRouteName == routeName ? arrivalInfo.busType.color : Color.gray.opacity(0.3))
-                                        .frame(width: 24, height: 24)
-                                        .overlay(
-                                            Image(systemName: "checkmark")
-                                                .font(.system(size: 12, weight: .bold))
-                                                .foregroundColor(.white)
-                                        )
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                                Text("사용자와 최근접의 버스정류장 정보가 표시됩니다.")
+                                    .moveFont(.caption)
+                                    .foregroundColor(.gray)
                             }
-                            .padding(.vertical, 8)
-                            .alignmentGuide(.listRowSeparatorLeading) { d in d[.leading] }
+
+                            Spacer()
+
+                            Button(action: {
+                                refreshBusArrivals()
+                            }) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.title2)
+                                    .foregroundColor(.gray)
+                                    .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
+                                    .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
+                            }
+                            .disabled(isLoadingArrivals)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.white)
+
+                        Divider()
+
+                        // 버스 노선들 (API에서 가져온 실시간 정보)
+                        ForEach(Array(busArrivals.keys.sorted()), id: \.self) { routeName in
+                            if let arrivalInfo = busArrivals[routeName] {
+                                VStack(spacing: 0) {
+                                    HStack {
+                                        Image(systemName: "bus")
+                                            .foregroundColor(arrivalInfo.busType.color)
+
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            HStack(spacing: 4) {
+                                                Text(routeName)
+                                                    .moveFont(.homeSubTitle)
+                                                    .foregroundColor(arrivalInfo.busType.color)
+                                                    .fontWeight(.bold)
+
+                                                if !arrivalInfo.busType.displayName.isEmpty {
+                                                    Text(arrivalInfo.busType.displayName)
+                                                        .moveFont(.caption)
+                                                        .foregroundColor(.gray)
+                                                }
+                                            }
+
+                                            if let arrivalMsg = arrivalInfo.arrmsg1 {
+                                                Text(arrivalMsg)
+                                                    .moveFont(.caption)
+                                                    .foregroundColor(.gray)
+                                            }
+
+                                            if let direction = arrivalInfo.adirection {
+                                                Text("\(direction) 방면")
+                                                    .moveFont(.caption)
+                                                    .foregroundColor(.gray.opacity(0.8))
+                                            }
+                                        }
+
+                                        Spacer()
+
+                                        Button(action: {
+                                            // 새로운 노선 선택 시
+                                            if selectedRouteName != routeName {
+                                                selectedRouteName = routeName
+                                                isButtonTapped = true  // 리스트 선택 시 중앙 버튼 이미지/텍스트 변경
+                                            } else {
+                                                // 이미 선택된 것을 다시 누르면 선택 해제
+                                                selectedRouteName = nil
+                                                isButtonTapped = false
+                                            }
+                                        }) {
+                                            Circle()
+                                                .fill(selectedRouteName == routeName ? arrivalInfo.busType.color : Color.gray.opacity(0.3))
+                                                .frame(width: 24, height: 24)
+                                                .overlay(
+                                                    Image(systemName: "checkmark")
+                                                        .font(.system(size: 12, weight: .bold))
+                                                        .foregroundColor(.white)
+                                                )
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(Color.white)
+
+                                    Divider()
+                                }
+                            }
                         }
                     }
                 }
-                .listStyle(InsetGroupedListStyle())
-                .scrollContentBackground(.hidden)
-                .scrollDisabled(busArrivals.count <= 3)
-                .scrollIndicators(.hidden)
-                .padding(.top, 30)
+                .scrollDisabled(CGFloat(busArrivals.count) * 80 + 64 < 320)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .frame(height: min(CGFloat(busArrivals.count) * 80 + 64, 320))
+                .padding(.horizontal, 16)
+                .padding(.top, 60)
                 
                 Spacer()
             }
@@ -300,6 +310,7 @@ struct HomeView: View {
                 }
 
                 busArrivals = newArrivals
+                
             } catch {
                 Logger.log(message: "❌ [HomeView] Failed to fetch arrival info: \(error)")
             }
