@@ -102,11 +102,9 @@ struct HomeView: View {
                                 .moveFont(.homeSubTitle)
                                 .foregroundColor(.black)
 
-                            if let station = nearestStation {
-                                Text("정류소번호: \(station.arsId)")
-                                    .moveFont(.caption)
-                                    .foregroundColor(.gray)
-                            }
+                            Text("사용자와 최근접의 버스정류장 정보가 표시됩니다.")
+                                .moveFont(.caption)
+                                .foregroundColor(.gray)
                         }
                         
                         Spacer()
@@ -178,7 +176,6 @@ struct HomeView: View {
                                             Image(systemName: "checkmark")
                                                 .font(.system(size: 12, weight: .bold))
                                                 .foregroundColor(.white)
-                                                .opacity(selectedRouteName == routeName ? 1 : 0)
                                         )
                                 }
                                 .buttonStyle(PlainButtonStyle())
