@@ -17,12 +17,13 @@ struct HelpPageView: View {
                 .onTapGesture {
                     isPresented = false
                 }
-            
+
             VStack(spacing: 0) {
                 Image("HelpImage")
                     .resizable()
                     .interpolation(.high)
                     .ignoresSafeArea()
+                    .allowsHitTesting(false)
             }
 
             // 상단 헤더 영역
@@ -38,6 +39,7 @@ struct HelpPageView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 20)
+                .padding(.top, 40)
 
                 Spacer()
             }
