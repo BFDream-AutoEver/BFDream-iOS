@@ -25,7 +25,10 @@ class BluetoothManager: NSObject, ObservableObject {
 
     func sendCourtesySeatNotification(busNumber: String, completion: @escaping (Bool) -> Void) {
         self.onTransmitComplete = completion
-        self.targetBusNumber = busNumber
+
+        // 한글 버스 번호를 영어로 변환 (예: "강동01" → "Gangdong01", "2012" → "2012")
+        let translatedBusNumber = DistrictMapper.shared.translateBusNumber(busNumber)
+        self.targetBusNumber = translatedBusNumber
 
         guard bluetoothState == .poweredOn else {
             Logger.log(message: "블루투스가 켜져있지 않습니다.")
@@ -33,7 +36,7 @@ class BluetoothManager: NSObject, ObservableObject {
             return
         }
 
-        Logger.log(message: "🔍 \(busNumber)번 버스 검색 시작...")
+        Logger.log(message: "🔍 \(busNumber)번 버스 검색 시작... (ESP32: BF_DREAM_\(translatedBusNumber))")
         isScanning = true
         // Service UUID로 버스 기기만 스캔
         centralManager.scanForPeripherals(
