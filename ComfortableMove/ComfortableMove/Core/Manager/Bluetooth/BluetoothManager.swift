@@ -18,6 +18,9 @@ class BluetoothManager: NSObject, ObservableObject {
     private var onTransmitComplete: ((Bool) -> Void)?
     private var targetBusNumber: String?
 
+    var onBluetoothUnsupported: (() -> Void)?
+    var onBluetoothUnauthorized: (() -> Void)?
+
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil)
@@ -74,8 +77,10 @@ extension BluetoothManager: CBCentralManagerDelegate {
             Logger.log(message: "블루투스가 켜져있습니다.")
         case .unauthorized:
             Logger.log(message: "블루투스 권한이 없습니다.")
+            onBluetoothUnauthorized?()
         case .unsupported:
             Logger.log(message: "이 기기는 블루투스를 지원하지 않습니다.")
+            onBluetoothUnsupported?()
         default:
             break
         }
