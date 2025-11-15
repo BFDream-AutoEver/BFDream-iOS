@@ -156,7 +156,7 @@ struct OnBoardingView: View {
                     HStack(spacing: 8) {
                         ForEach(0..<onboardingData.count, id: \.self) { index in
                             Circle()
-                                .fill(currentPage == index ? Color("MainPalette1") : Color.gray.opacity(0.3))
+                                .fill(currentPage == index ? Color("MainPalette1") : Color("OnboardingGray"))
                                 .frame(width: 8, height: 8)
                         }
                     }
