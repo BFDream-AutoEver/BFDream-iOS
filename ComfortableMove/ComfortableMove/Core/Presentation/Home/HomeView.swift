@@ -11,21 +11,22 @@ import CoreLocation
 struct HomeView: View {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var bluetoothManager = BluetoothManager()
+    @StateObject private var alertManager = AlertManager()
 
     @State private var selectedRouteName: String?
     @State private var busArrivals: [String: BusArrivalItem] = [:] // routeName: 도착정보
     @State private var isLoadingArrivals = false
     @State private var nearestStation: StationItem? // 가장 가까운 정류소
     @State private var isLoadingStation = false
-    
+
     // Alert 상태
     @State private var showConfirmAlert = false
     @State private var showSuccessAlert = false
     @State private var showFailureAlert = false
-    
+
     // 화면 표시 상태
     @State private var showHelpPage = false
-    
+
     // 버튼 상태
     @State private var isButtonTapped = false
     
@@ -109,7 +110,7 @@ struct HomeView: View {
                             Spacer()
 
                             Button(action: {
-                                refreshBusArrivals()
+                                refreshLocation()
                             }) {
                                 Image(systemName: "arrow.clockwise")
                                     .font(.title2)
@@ -206,11 +207,17 @@ struct HomeView: View {
             .background(Color("BFPrimaryColor"))
             .ignoresSafeArea(.all, edges: .top)
             .onAppear {
+                setupAlertCallbacks()
                 locationManager.requestPermission()
             }
             .onChange(of: locationManager.currentLocation) { newLocation in
                 if let location = newLocation {
                     findNearestStation(location: location)
+                }
+            }
+            .onChange(of: locationManager.showPermissionAlert) { shouldShow in
+                if shouldShow {
+                    alertManager.showAlert(.locationUnauthorized)
                 }
             }
             .onChange(of: nearestStation) { newStation in
@@ -237,10 +244,41 @@ struct HomeView: View {
             } message: {
                 Text("다시 한번 시도해주세요.")
             }
+            .alert(item: $alertManager.currentAlert) { alertType in
+                if alertType.shouldBlockApp {
+                    return Alert(
+                        title: Text(alertType.title),
+                        message: Text(alertType.message),
+                        primaryButton: .default(Text(alertType.primaryButtonText)) {
+                            alertManager.openSettings()
+                        },
+                        secondaryButton: .cancel(Text("취소"))
+                    )
+                } else {
+                    return Alert(
+                        title: Text(alertType.title),
+                        message: Text(alertType.message),
+                        dismissButton: .default(Text(alertType.primaryButtonText)) {
+                            alertManager.dismissAlert()
+                        }
+                    )
+                }
+            }
             .overlay(
                 showHelpPage ? HelpPageView(isPresented: $showHelpPage) : nil
             )
             .navigationBarHidden(true)
+        }
+    }
+
+    // MARK: - Setup Alert Callbacks
+    private func setupAlertCallbacks() {
+        bluetoothManager.onBluetoothUnsupported = {
+            alertManager.showAlert(.bluetoothUnsupported)
+        }
+
+        bluetoothManager.onBluetoothUnauthorized = {
+            alertManager.showAlert(.bluetoothUnauthorized)
         }
     }
     
@@ -267,7 +305,16 @@ struct HomeView: View {
         isButtonTapped = false
         selectedRouteName = nil
     }
-    
+
+    // MARK: - 위치 새로고침
+    private func refreshLocation() {
+        guard let location = locationManager.currentLocation else {
+            locationManager.refreshLocation()
+            return
+        }
+        findNearestStation(location: location)
+    }
+
     // MARK: - 가장 가까운 정류소 찾기
     private func findNearestStation(location: CLLocation) {
         isLoadingStation = true
@@ -284,8 +331,15 @@ struct HomeView: View {
                     Logger.log(message: "⚠️ [HomeView] No stations found within radius")
                     nearestStation = nil
                 }
-            } catch {
+            } catch let error as NSError {
                 Logger.log(message: "❌ [HomeView] Failed to find nearest station: \(error)")
+
+                // 서울 외 지역 체크
+                if error.domain == "OutOfSeoul" {
+                    alertManager.showAlert(.outOfSeoul)
+                } else {
+                    alertManager.showAlert(.apiError)
+                }
                 nearestStation = nil
             }
 
@@ -310,9 +364,14 @@ struct HomeView: View {
                 }
 
                 busArrivals = newArrivals
-                
-            } catch {
+
+            } catch let error as NSError {
                 Logger.log(message: "❌ [HomeView] Failed to fetch arrival info: \(error)")
+
+                // API 에러 처리
+                if error.domain == "APIError" {
+                    alertManager.showAlert(.apiError)
+                }
             }
 
             isLoadingArrivals = false
