@@ -25,6 +25,7 @@
 		807063602E7A8150004D496D /* Exceptions for "ComfortableMove" folder in "ComfortableMove" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Core/.claude/settings.local.json,
 				Info.plist,
 			);
 			target = 8070624B2E7A7714004D496D /* ComfortableMove */;
@@ -151,11 +152,11 @@
 				};
 			};
 			buildConfigurationList = 807062472E7A7714004D496D /* Build configuration list for PBXProject "ComfortableMove" */;
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				ko,
 			);
 			mainGroup = 807062432E7A7714004D496D;
 			minimizedProjectReferenceProxies = 1;
@@ -396,6 +397,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ComfortableMove/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "근처 블루투스 기기와 연결하기 위해 블루투스 권한이 필요합니다.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "근처 블루투스 기기와 연결하기 위해 블루투스 권한이 필요합니다.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "가까운 버스 정류장을 찾기 위해 위치 정보가 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -434,6 +438,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ComfortableMove/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "근처 블루투스 기기와 연결하기 위해 블루투스 권한이 필요합니다.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "근처 블루투스 기기와 연결하기 위해 블루투스 권한이 필요합니다.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "가까운 버스 정류장을 찾기 위해 위치 정보가 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
