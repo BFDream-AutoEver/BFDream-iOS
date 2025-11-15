@@ -108,6 +108,10 @@ struct MsgHeader: Codable {
     var isSuccess: Bool {
         return headerCd == "0"
     }
+
+    var isOutOfSeoul: Bool {
+        return headerCd == "4" && headerMsg == "결과가 없습니다."
+    }
 }
 
 // MARK: - 메시지 본문
