@@ -8,9 +8,22 @@
 import SwiftUI
 
 struct InfoView: View {
-    @Environment(\.dismiss) private var dismiss
     private let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-
+    
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    
+    var backButton : some View {  // <-- 👀 커스텀 버튼
+        Button{
+            self.presentationMode.wrappedValue.dismiss()
+        } label: {
+            HStack {
+                Image(systemName: "chevron.left") // 화살표 Image
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundStyle(Color.white)
+            }
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
@@ -21,7 +34,7 @@ struct InfoView: View {
                 .scaledToFit()
                 .frame(width: 100, height: 170)
                 .padding(.bottom, 100)
-
+            
             // 하단 리스트 영역
             VStack(spacing: 0) {
                 // 버전 정보
@@ -37,10 +50,10 @@ struct InfoView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .background(Color.white)
-
+                
                 Divider()
                     .padding(.leading, 20)
-
+                
                 // 앱 문의
                 Button(action: {
                     if let url = URL(string: "https://forms.gle/rnSD44sUEuy1nLaH6") {
@@ -60,10 +73,10 @@ struct InfoView: View {
                     .padding(.vertical, 16)
                     .background(Color.white)
                 }
-
+                
                 Divider()
                     .padding(.leading, 20)
-
+                
                 // 개인정보 처리 방침 및 이용약관
                 Button(action: {
                     if let url = URL(string: "https://important-hisser-903.notion.site/10-22-ver-29a65f12c44480b6b591e726c5c80f89?source=copy_link") {
@@ -87,12 +100,13 @@ struct InfoView: View {
             .background(Color.white)
             .cornerRadius(20)
             .padding(.horizontal, 20)
-
+            
             Spacer()
         }
         .background(Color("BFPrimaryColor"))
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(false)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading: backButton)
         .navigationTitle("앱정보")
         .toolbarBackground(Color("BFPrimaryColor"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
