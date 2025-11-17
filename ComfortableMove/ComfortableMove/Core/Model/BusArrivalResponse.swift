@@ -109,7 +109,7 @@ struct MsgHeader: Codable {
         return headerCd == "0"
     }
 
-    var isOutOfSeoul: Bool {
+    var noBusInfo: Bool {
         return headerCd == "4" && headerMsg == "결과가 없습니다."
     }
 }

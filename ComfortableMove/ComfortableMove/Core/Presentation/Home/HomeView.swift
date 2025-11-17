@@ -336,7 +336,7 @@ struct HomeView: View {
 
                 // 서울 외 지역 체크
                 if error.domain == "OutOfSeoul" {
-                    alertManager.showAlert(.outOfSeoul)
+                    alertManager.showAlert(.noBusInfo)
                 } else {
                     alertManager.showAlert(.apiError)
                 }
