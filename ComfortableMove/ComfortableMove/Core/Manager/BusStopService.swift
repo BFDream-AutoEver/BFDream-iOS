@@ -50,9 +50,9 @@ class BusStopService {
         Logger.log(message: "🚏 [API] Item Count: \(result.msgHeader.itemCount)")
 
         // 서울 외 지역 체크
-        if result.msgHeader.isOutOfSeoul {
+        if result.msgHeader.noBusInfo {
             Logger.log(message: "❌ [API] Out of Seoul: \(result.msgHeader.headerMsg)")
-            throw NSError(domain: "OutOfSeoul", code: 4, userInfo: [NSLocalizedDescriptionKey: "서울 외 지역"])
+            throw NSError(domain: "noBusInfo", code: 4, userInfo: [NSLocalizedDescriptionKey: "버스 정보 없음"])
         }
 
         guard result.msgHeader.isSuccess else {

@@ -10,7 +10,7 @@ import SwiftUI
 
 // MARK: - Alert Types
 enum AlertType: Identifiable {
-    case outOfSeoul
+    case noBusInfo
     case apiError
     case bluetoothUnsupported
     case bluetoothUnauthorized
@@ -18,7 +18,7 @@ enum AlertType: Identifiable {
 
     var id: String {
         switch self {
-        case .outOfSeoul: return "outOfSeoul"
+        case .noBusInfo: return "noBusInfo"
         case .apiError: return "apiError"
         case .bluetoothUnsupported: return "bluetoothUnsupported"
         case .bluetoothUnauthorized: return "bluetoothUnauthorized"
@@ -30,15 +30,15 @@ enum AlertType: Identifiable {
         switch self {
         case .locationUnauthorized: return 3
         case .bluetoothUnsupported, .bluetoothUnauthorized: return 2
-        case .outOfSeoul: return 1
+        case .noBusInfo: return 1
         case .apiError: return 0
         }
     }
 
     var title: String {
         switch self {
-        case .outOfSeoul:
-            return "서울 외 지역"
+        case .noBusInfo:
+            return "버스 정보 없음"
         case .apiError:
             return "서버 오류"
         case .bluetoothUnsupported:
@@ -52,8 +52,8 @@ enum AlertType: Identifiable {
 
     var message: String {
         switch self {
-        case .outOfSeoul:
-            return "현재 서울 지역에서만 서비스를 이용할 수 있습니다."
+        case .noBusInfo:
+            return "버스 정류장 주변 서비스 가능한 버스가 없습니다."
         case .apiError:
             return "서버에 문제가 발생했습니다.\n잠시 후 다시 시도해주세요."
         case .bluetoothUnsupported:
@@ -69,7 +69,7 @@ enum AlertType: Identifiable {
         switch self {
         case .bluetoothUnsupported, .bluetoothUnauthorized, .locationUnauthorized:
             return true
-        case .outOfSeoul, .apiError:
+        case .noBusInfo, .apiError:
             return false
         }
     }
