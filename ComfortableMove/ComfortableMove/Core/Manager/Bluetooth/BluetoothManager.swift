@@ -103,9 +103,9 @@ extension BluetoothManager: CBCentralManagerDelegate {
             return
         }
 
-        // 버스 번호로 필터링
+        // 버스 번호로 필터링 (대소문자 무시)
         guard let busNumber = BluetoothConfig.busNumber(from: finalDeviceName),
-              busNumber == targetBusNumber else {
+              busNumber.lowercased() == targetBusNumber?.lowercased() else {
             Logger.log(message: "⚠️ 다른 버스(\(BluetoothConfig.busNumber(from: finalDeviceName) ?? "알 수 없음")번) - 무시")
             return
         }

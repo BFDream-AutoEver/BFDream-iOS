@@ -15,6 +15,9 @@ enum AlertType: Identifiable {
     case bluetoothUnsupported
     case bluetoothUnauthorized
     case locationUnauthorized
+    case bluetoothConfirm(busName: String, onConfirm: () -> Void, onCancel: () -> Void)
+    case bluetoothSuccess
+    case bluetoothFailure
 
     var id: String {
         switch self {
@@ -23,6 +26,9 @@ enum AlertType: Identifiable {
         case .bluetoothUnsupported: return "bluetoothUnsupported"
         case .bluetoothUnauthorized: return "bluetoothUnauthorized"
         case .locationUnauthorized: return "locationUnauthorized"
+        case .bluetoothConfirm: return "bluetoothConfirm"
+        case .bluetoothSuccess: return "bluetoothSuccess"
+        case .bluetoothFailure: return "bluetoothFailure"
         }
     }
 
@@ -30,6 +36,7 @@ enum AlertType: Identifiable {
         switch self {
         case .locationUnauthorized: return 3
         case .bluetoothUnsupported, .bluetoothUnauthorized: return 2
+        case .bluetoothConfirm, .bluetoothSuccess, .bluetoothFailure: return 1
         case .noBusInfo: return 1
         case .apiError: return 0
         }
@@ -47,6 +54,12 @@ enum AlertType: Identifiable {
             return "블루투스 권한 필요"
         case .locationUnauthorized:
             return "위치 권한 필요"
+        case .bluetoothConfirm(let busName, _, _):
+            return "\(busName)버스에 배려석 알림을 전송하시겠습니까?"
+        case .bluetoothSuccess:
+            return "알림 전송 완료"
+        case .bluetoothFailure:
+            return "버스 배려석 알림 전송에 실패하였습니다."
         }
     }
 
@@ -62,6 +75,12 @@ enum AlertType: Identifiable {
             return "블루투스 권한이 필요합니다.\n설정에서 블루투스 권한을 허용해주세요."
         case .locationUnauthorized:
             return "위치 권한이 필요합니다.\n설정에서 위치 권한을 허용해주세요."
+        case .bluetoothConfirm:
+            return ""
+        case .bluetoothSuccess:
+            return ""
+        case .bluetoothFailure:
+            return "다시 한번 시도해주세요."
         }
     }
 
@@ -69,13 +88,20 @@ enum AlertType: Identifiable {
         switch self {
         case .bluetoothUnsupported, .bluetoothUnauthorized, .locationUnauthorized:
             return true
-        case .noBusInfo, .apiError:
+        case .noBusInfo, .apiError, .bluetoothConfirm, .bluetoothSuccess, .bluetoothFailure:
             return false
         }
     }
 
     var primaryButtonText: String {
         shouldBlockApp ? "설정으로 이동" : "확인"
+    }
+
+    var isConfirmAlert: Bool {
+        if case .bluetoothConfirm = self {
+            return true
+        }
+        return false
     }
 }
 
@@ -84,9 +110,9 @@ class AlertManager: ObservableObject {
     @Published var currentAlert: AlertType?
 
     func showAlert(_ type: AlertType) {
-        // 현재 alert가 없거나, 새로운 alert의 우선순위가 더 높은 경우에만 표시
+        // 현재 alert가 없거나, 새로운 alert의 우선순위가 더 높거나 같은 경우 표시
         if let current = currentAlert {
-            if type.priority > current.priority {
+            if type.priority >= current.priority {
                 currentAlert = type
             }
         } else {

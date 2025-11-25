@@ -19,10 +19,6 @@ struct HomeView: View {
     @State private var nearestStation: StationItem? // 가장 가까운 정류소
     @State private var isLoadingStation = false
 
-    // Alert 상태
-    @State private var showConfirmAlert = false
-    @State private var showSuccessAlert = false
-    @State private var showFailureAlert = false
 
     // 화면 표시 상태
     @State private var showHelpPage = false
@@ -74,8 +70,14 @@ struct HomeView: View {
                 VStack(spacing: 30) {
                     // 중앙 버튼
                     Button(action: {
+                        Logger.log(message: "🔘 중앙 버튼 클릭 - selectedRouteName: \(selectedRouteName ?? "nil"), isButtonTapped: \(isButtonTapped)")
                         if selectedRouteName != nil && isButtonTapped {
-                            showConfirmAlert = true
+                            Logger.log(message: "✅ 확인 Alert 표시")
+                            alertManager.showAlert(.bluetoothConfirm(
+                                busName: selectedBusName,
+                                onConfirm: { sendCourtesySeatNotification() },
+                                onCancel: { resetButtonState() }
+                            ))
                         }
                     }) {
                         ZStack {
@@ -225,50 +227,51 @@ struct HomeView: View {
                     refreshBusArrivals()
                 }
             }
-            .alert(isPresented: $showConfirmAlert) {
-                Alert(
-                    title: Text("\(selectedBusName)버스에 배려석 알림을 전송하시겠습니까?"),
-                    primaryButton: .destructive(Text("취소")) {
-                        resetButtonState()
-                    },
-                    secondaryButton: .default(Text("확인")) {
-                        sendCourtesySeatNotification()
-                    }
-                )
-            }
-            .alert("알림 전송 완료", isPresented: $showSuccessAlert) {
-                Button("확인", role: .cancel) { }
-            }
-            .alert("버스 배려석 알림 전송에 실패하였습니다.", isPresented: $showFailureAlert) {
-                Button("확인", role: .cancel) { }
-            } message: {
-                Text("다시 한번 시도해주세요.")
-            }
             .alert(item: $alertManager.currentAlert) { alertType in
-                if alertType.shouldBlockApp {
-                    return Alert(
-                        title: Text(alertType.title),
-                        message: Text(alertType.message),
-                        primaryButton: .default(Text(alertType.primaryButtonText)) {
-                            alertManager.openSettings()
-                        },
-                        secondaryButton: .cancel(Text("취소"))
-                    )
-                } else {
-                    return Alert(
-                        title: Text(alertType.title),
-                        message: Text(alertType.message),
-                        dismissButton: .default(Text(alertType.primaryButtonText)) {
-                            alertManager.dismissAlert()
-                        }
-                    )
-                }
+                createAlert(for: alertType)
             }
             .overlay(
                 showHelpPage ? HelpPageView(isPresented: $showHelpPage) : nil
             )
             .navigationBarHidden(true)
         }
+    }
+
+    // MARK: - Create Alert
+    private func createAlert(for alertType: AlertType) -> Alert {
+        if case .bluetoothConfirm(_, let onConfirm, let onCancel) = alertType {
+            return Alert(
+                title: Text(alertType.title),
+                primaryButton: .default(Text("확인")) {
+                    alertManager.dismissAlert()
+                    onConfirm()
+                },
+                secondaryButton: .cancel(Text("취소")) {
+                    alertManager.dismissAlert()
+                    onCancel()
+                }
+            )
+        }
+
+        if alertType.shouldBlockApp {
+            return Alert(
+                title: Text(alertType.title),
+                message: Text(alertType.message),
+                primaryButton: .default(Text(alertType.primaryButtonText)) {
+                    alertManager.openSettings()
+                },
+                secondaryButton: .cancel(Text("취소"))
+            )
+        }
+
+        let messageText: Text? = alertType.message.isEmpty ? nil : Text(alertType.message)
+        return Alert(
+            title: Text(alertType.title),
+            message: messageText,
+            dismissButton: .default(Text(alertType.primaryButtonText)) {
+                alertManager.dismissAlert()
+            }
+        )
     }
 
     // MARK: - Setup Alert Callbacks
@@ -289,14 +292,18 @@ struct HomeView: View {
     
     // MARK: - 배려석 알림 전송
     private func sendCourtesySeatNotification() {
-        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName) {  success in
-            if success {
-                showSuccessAlert = true
-            } else {
-                showFailureAlert = true
+        Logger.log(message: "📲 sendCourtesySeatNotification 호출됨 - 버스: \(selectedBusName)")
+        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName) { success in
+            DispatchQueue.main.async {
+                Logger.log(message: "📲 Bluetooth 전송 완료 - success: \(success)")
+                if success {
+                    alertManager.showAlert(.bluetoothSuccess)
+                } else {
+                    alertManager.showAlert(.bluetoothFailure)
+                }
+                // 알림 전송 완료/실패 후 초기화
+                resetButtonState()
             }
-            // 알림 전송 완료/실패 후 초기화
-            resetButtonState()
         }
     }
     
