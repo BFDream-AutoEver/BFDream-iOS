@@ -30,7 +30,7 @@ enum BusRouteType {
         case .gwangyeok:
             return Color("WideAreaBus")
         case .gongHang:
-            return Color.gray
+            return Color("AirportBus")
         case .unknown:
             return Color.gray
         }
@@ -64,6 +64,11 @@ enum BusRouteType {
 
         guard length > 0 else { return .unknown }
 
+        // 공항버스: 6으로 시작하는 4자리 (6705A 같은 경우도 포함)
+        if length == 4 && digits.first == "6" {
+            return .gongHang
+        }
+
         // 광역버스: 9로 시작하는 4자리
         if length == 4 && digits.first == "9" {
             return .gwangyeok
@@ -74,7 +79,7 @@ enum BusRouteType {
             return .gangseon
         }
 
-        // 지선버스: 4자리 (9로 시작하지 않음)
+        // 지선버스: 4자리 (6, 9로 시작하지 않음)
         if length == 4 {
             return .jiseon
         }
