@@ -104,7 +104,7 @@ struct HomeView: View {
                                     .moveFont(.homeSubTitle)
                                     .foregroundColor(.black)
 
-                                Text("사용자와 최근접의 버스정류장 정보가 표시됩니다.")
+                                Text("사용자와 100m 이내의 버스정류장 정보가 표시됩니다.")
                                     .moveFont(.caption)
                                     .foregroundColor(.gray)
                             }
