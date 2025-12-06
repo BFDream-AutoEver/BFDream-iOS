@@ -208,7 +208,7 @@ struct OnBoardingView: View {
             Text(createAttributedString(from: title, highlight: "간편하게", color: Color("SecondaryPalette3")))
                 .moveFont(.homeTitle)
         case 3:
-            Text(createAttributedString(from: title, highlight: "임산부", color: Color("CircularBus")))
+            Text(createAttributedString(from: title, highlight: "임산부", color: Color("Onboarding4")))
                 .moveFont(.homeTitle)
         case 4:
             Text(createAttributedString(from: title, highlight: "맘편한 이동", color: Color("MainPalette1")))

@@ -28,14 +28,15 @@ struct HomeView: View {
     
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // 상단 헤더
+        GeometryReader { geometry in
+            NavigationStack {
                 VStack(spacing: 0) {
-                    // 상태바 영역
-                    Rectangle()
-                        .fill(Color("BFPrimaryColor"))
-                        .frame(height: 44)
+                    // 상단 헤더
+                    VStack(spacing: 0) {
+                        // 상태바 영역
+                        Rectangle()
+                            .fill(Color("BFPrimaryColor"))
+                            .frame(height: geometry.safeAreaInsets.top)
                     
                     // 네비게이션 헤더
                     HStack {
@@ -234,6 +235,7 @@ struct HomeView: View {
                 showHelpPage ? HelpPageView(isPresented: $showHelpPage) : nil
             )
             .navigationBarHidden(true)
+            }
         }
     }
 
@@ -342,7 +344,7 @@ struct HomeView: View {
                 Logger.log(message: "❌ [HomeView] Failed to find nearest station: \(error)")
 
                 // 서울 외 지역 체크
-                if error.domain == "OutOfSeoul" {
+                if error.domain == "noBusInfo" {
                     alertManager.showAlert(.noBusInfo)
                 } else {
                     alertManager.showAlert(.apiError)

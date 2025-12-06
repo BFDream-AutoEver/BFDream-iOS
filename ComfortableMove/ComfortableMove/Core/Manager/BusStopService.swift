@@ -13,8 +13,8 @@ class BusStopService {
 
     private init() {}
 
-    /// 위치 기반 주변 정류소 조회
-    func getNearbyStations(location: CLLocation, radius: Int = 100) async throws -> [StationItem] {
+    // MARK: 위치 기반 주변 정류소 조회 -> 10m로 업데이트
+    func getNearbyStations(location: CLLocation, radius: Int = 10) async throws -> [StationItem] {
         let baseURL = "http://ws.bus.go.kr/api/rest/stationinfo/getStationByPos"
 
         Logger.log(message: "🚏 [API] Searching stations near (\(location.coordinate.latitude), \(location.coordinate.longitude))")

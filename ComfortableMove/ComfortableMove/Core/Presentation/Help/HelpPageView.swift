@@ -29,14 +29,14 @@ struct HelpPageView: View {
             // 상단 헤더 영역
             VStack {
                 HStack {
+                    Spacer()
                     Button(action: {
                         isPresented = false
                     }) {
-                        Image(systemName: "chevron.left")
+                        Image(systemName: "x.mark")
                             .font(.title)
                             .foregroundColor(.white)
                     }
-                    Spacer()
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 40)
