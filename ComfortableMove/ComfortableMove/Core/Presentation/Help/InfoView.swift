@@ -107,7 +107,13 @@ struct InfoView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: backButton)
-        .navigationTitle("앱정보")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("앱 정보")
+                    .moveFont(.homeMediumTitle)
+                    .foregroundColor(.white)
+            }
+        }
         .toolbarBackground(Color("BFPrimaryColor"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
