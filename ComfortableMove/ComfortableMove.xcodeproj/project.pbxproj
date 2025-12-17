@@ -33,11 +33,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		804966C02E8B87F7004590A7 /* ComfortableMoveTest */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ComfortableMoveTest;
-			sourceTree = "<group>";
-		};
 		8070624E2E7A7714004D496D /* ComfortableMove */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -70,7 +65,6 @@
 			isa = PBXGroup;
 			children = (
 				8070624E2E7A7714004D496D /* ComfortableMove */,
-				804966C02E8B87F7004590A7 /* ComfortableMoveTest */,
 				8070624D2E7A7714004D496D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -99,9 +93,6 @@
 			);
 			dependencies = (
 				804966C42E8B87F7004590A7 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				804966C02E8B87F7004590A7 /* ComfortableMoveTest */,
 			);
 			name = ComfortableMoveTest;
 			packageProductDependencies = (
