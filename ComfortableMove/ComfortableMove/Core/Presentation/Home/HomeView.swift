@@ -147,10 +147,18 @@ struct HomeView: View {
                                                 }
                                             }
 
-                                            if let arrivalMsg = arrivalInfo.arrmsg1 {
-                                                Text(arrivalMsg)
-                                                    .moveFont(.caption)
-                                                    .foregroundColor(.gray)
+                                            HStack(spacing: 4) {
+                                                if let arrivalMsg = arrivalInfo.arrmsg1 {
+                                                    Text(arrivalMsg)
+                                                        .moveFont(.caption)
+                                                        .foregroundColor(.gray)
+                                                }
+
+                                                if arrivalInfo.congestion != .unknown {
+                                                    Text(arrivalInfo.congestion.rawValue)
+                                                        .moveFont(.caption)
+                                                        .foregroundColor(arrivalInfo.congestion.color)
+                                                }
                                             }
 
                                             if let direction = arrivalInfo.adirection {
