@@ -20,8 +20,6 @@ struct HomeView: View {
     @State private var isLoadingStation = false
 
 
-    // 화면 표시 상태
-    @State private var showHelpPage = false
 
     // 버튼 상태
     @State private var isButtonTapped = false
@@ -48,14 +46,12 @@ struct HomeView: View {
                         Spacer()
                         
                         HStack(spacing: 10) {
-                            Button(action: {
-                                showHelpPage = true
-                            }) {
+                            NavigationLink(destination: HelpPageView()) {
                                 Image(systemName: "questionmark.circle")
                                     .font(.title2)
                                     .foregroundColor(.white)
                             }
-                            
+
                             NavigationLink(destination: InfoView()) {
                                 Image(systemName: "gearshape")
                                     .font(.title2)
@@ -231,9 +227,6 @@ struct HomeView: View {
             .alert(item: $alertManager.currentAlert) { alertType in
                 createAlert(for: alertType)
             }
-            .overlay(
-                showHelpPage ? HelpPageView(isPresented: $showHelpPage) : nil
-            )
             .navigationBarHidden(true)
             }
         }
