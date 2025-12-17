@@ -9,7 +9,16 @@ import SwiftUI
 
 struct HelpPageView: View {
     @Environment(\.dismiss) private var dismiss
-
+    @State private var currentPage = 0
+    
+    private var helpImages: [String] {
+        if UIApplication.isMinimumSizeDevice {
+            return ["RatioFixHelpImage1", "RatioFixHelpImage2"]
+        } else {
+            return ["HelpImage1", "HelpImage2"]
+        }
+    }
+    
     private var backButton: some View {
         Button(action: {
             dismiss()
@@ -18,16 +27,26 @@ struct HelpPageView: View {
                 .foregroundColor(.white)
         }
     }
-
+    
     var body: some View {
-        VStack(spacing: 0) {
-            Image("HelpImage")
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
+        TabView(selection: $currentPage) {
+            ForEach(0..<helpImages.count, id: \.self) { index in
+                Image(helpImages[index])
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .tag(index)
+            }
         }
+        .tabViewStyle(.page(indexDisplayMode: .never))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color("BFPrimaryColor"))
+        .background(
+            ZStack {
+                Color("BFPrimaryColor")
+                Color.black.opacity(0.6)
+            }
+                .ignoresSafeArea()
+        )
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: backButton)
