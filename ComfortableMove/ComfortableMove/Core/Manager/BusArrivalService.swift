@@ -54,6 +54,11 @@ class BusArrivalService {
         let items = result.msgBody.itemList ?? []
         Logger.log(message: "🚌 [API] Retrieved \(items.count) bus routes")
 
+        // 혼잡도 디버깅
+        for item in items {
+            Logger.log(message: "🚌 [API] Route: \(item.rtNm), congestion1: \(item.congestion1 ?? "nil"), congestion: \(item.congestion.rawValue)")
+        }
+
         return items
     }
 }

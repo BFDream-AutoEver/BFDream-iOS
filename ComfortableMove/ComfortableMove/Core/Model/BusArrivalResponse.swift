@@ -124,6 +124,41 @@ struct MsgBody: Codable {
     let itemList: [BusArrivalItem]?
 }
 
+// MARK: - 버스 혼잡도
+enum BusCongestion: String {
+    case empty = "여유"
+    case normal = "보통"
+    case crowded = "혼잡"
+    case unknown = ""
+
+    var color: Color {
+        switch self {
+        case .empty:
+            return Color("Comfort")
+        case .normal:
+            return Color("Normal")
+        case .crowded:
+            return Color("Crowded")
+        case .unknown:
+            return Color.gray
+        }
+    }
+
+    static func from(code: String?) -> BusCongestion {
+        guard let code = code else { return .unknown }
+        switch code {
+        case "0", "3":
+            return .empty
+        case "4":
+            return .normal
+        case "5", "6":
+            return .crowded
+        default:
+            return .unknown
+        }
+    }
+}
+
 // MARK: - 버스 도착 정보 아이템
 struct BusArrivalItem: Codable {
     let rtNm: String           // 노선명 (예: "721")
@@ -132,9 +167,15 @@ struct BusArrivalItem: Codable {
     let routeType: String      // 노선유형 (3:간선, 4:지선 등)
     let isFullFlag1: String?   // 만차 여부 (0:만차아님, 1:만차)
     let isLast1: String?       // 막차 여부 (0:막차아님, 1:막차)
+    let congestion1: String?    // 첫번째 버스 혼잡도 (3:여유, 4:보통, 5:혼잡)
 
     // 버스 번호로부터 계산된 노선 유형
     var busType: BusRouteType {
         return BusRouteType.from(busNumber: rtNm)
+    }
+
+    // 혼잡도
+    var congestion: BusCongestion {
+        return BusCongestion.from(code: congestion1)
     }
 }
