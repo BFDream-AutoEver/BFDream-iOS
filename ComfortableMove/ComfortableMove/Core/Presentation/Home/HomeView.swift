@@ -209,17 +209,17 @@ struct HomeView: View {
                 setupAlertCallbacks()
                 locationManager.requestPermission()
             }
-            .onChange(of: locationManager.currentLocation) { newLocation in
+            .onChange(of: locationManager.currentLocation) { _, newLocation in
                 if let location = newLocation {
                     findNearestStation(location: location)
                 }
             }
-            .onChange(of: locationManager.showPermissionAlert) { shouldShow in
+            .onChange(of: locationManager.showPermissionAlert) { _, shouldShow in
                 if shouldShow {
                     alertManager.showAlert(.locationUnauthorized)
                 }
             }
-            .onChange(of: nearestStation) { newStation in
+            .onChange(of: nearestStation) { _, newStation in
                 if newStation != nil {
                     refreshBusArrivals()
                 }
