@@ -35,6 +35,16 @@ enum FontType {
         case .buttonText: return 20
         }
     }
+    
+    // Dynamic Type을 위한 기준 스타일 (relativeTo)
+    var textStyle: Font.TextStyle {
+        switch self {
+        case .homeTitle, .splashTitle: return .largeTitle
+        case .homeMediumTitle, .splashSubTitle: return .title
+        case .homeSubTitle, .buttonText: return .body
+        case .caption: return .caption
+        }
+    }
 }
 
 enum PretendardWeight: String {
@@ -45,8 +55,8 @@ enum PretendardWeight: String {
 
 extension View {
     func moveFont(_ type: FontType) -> some View {
-        let font = UIFont(name: type.fontName.rawValue, size: type.fontSize) ?? UIFont.systemFont(ofSize: type.fontSize)
-        
-        return self.font(Font(font))
+        // Font.custom(_:size:relativeTo:)를 사용하여 Dynamic Type 지원
+        // relativeTo 파라미터가 있어야 시스템 폰트 크기 설정에 맞춰 함께 커짐
+        return self.font(.custom(type.fontName.rawValue, size: type.fontSize, relativeTo: type.textStyle))
     }
 }
