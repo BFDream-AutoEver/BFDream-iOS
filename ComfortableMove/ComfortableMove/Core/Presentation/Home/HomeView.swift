@@ -23,8 +23,9 @@ struct HomeView: View {
 
     // 버튼 상태
     @State private var isButtonTapped = false
-    
-    
+    @AppStorage("isSoundEnabled") private var isSoundEnabled: Bool = true
+
+
     var body: some View {
         GeometryReader { geometry in
             NavigationStack {
@@ -216,6 +217,7 @@ struct HomeView: View {
             .onAppear {
                 setupAlertCallbacks()
                 locationManager.requestPermission()
+                Logger.log(message: "🔔 [HomeView] 알림음 설정: \(isSoundEnabled ? "ON" : "OFF")")
             }
             .onChange(of: locationManager.currentLocation) { _, newLocation in
                 if let location = newLocation {
@@ -296,7 +298,7 @@ struct HomeView: View {
     // MARK: - 배려석 알림 전송
     private func sendCourtesySeatNotification() {
         Logger.log(message: "📲 sendCourtesySeatNotification 호출됨 - 버스: \(selectedBusName)")
-        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName) { success in
+        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName, withSound: isSoundEnabled) { success in
             DispatchQueue.main.async {
                 Logger.log(message: "📲 Bluetooth 전송 완료 - success: \(success)")
                 if success {
