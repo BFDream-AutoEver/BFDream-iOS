@@ -8,6 +8,13 @@
 import Foundation
 import CoreBluetooth
 
+// 전송 결과 타입 정의
+enum BluetoothTransferResult {
+    case success
+    case deviceNotFound
+    case failure
+}
+
 class BluetoothManager: NSObject, ObservableObject {
     @Published var isScanning = false
     @Published var bluetoothState: CBManagerState = .unknown
@@ -15,7 +22,7 @@ class BluetoothManager: NSObject, ObservableObject {
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
     private var rxCharacteristic: CBCharacteristic?
-    private var onTransmitComplete: ((Bool) -> Void)?
+    private var onTransmitComplete: ((BluetoothTransferResult) -> Void)?
     private var targetBusNumber: String?
     private var withSound: Bool = true
 
@@ -27,7 +34,7 @@ class BluetoothManager: NSObject, ObservableObject {
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
 
-    func sendCourtesySeatNotification(busNumber: String, withSound: Bool, completion: @escaping (Bool) -> Void) {
+    func sendCourtesySeatNotification(busNumber: String, withSound: Bool, completion: @escaping (BluetoothTransferResult) -> Void) {
         self.onTransmitComplete = completion
         self.withSound = withSound
 
@@ -37,7 +44,15 @@ class BluetoothManager: NSObject, ObservableObject {
 
         guard bluetoothState == .poweredOn else {
             Logger.log(message: "블루투스가 켜져있지 않습니다.")
-            completion(false)
+            completion(.failure)
+            return
+        }
+
+        guard let serviceUUID = BluetoothConfig.busServiceUUID else {
+            Logger.log(message: "❌ Invalid Configuration: Bus Service UUID not found.")
+            // 설정이 없으면 스캔 자체를 할 수 없으므로 deviceNotFound로 안내하거나 
+            // 시스템 오류임을 알리기 위해 결과를 .deviceNotFound로 보냅니다.
+            completion(.deviceNotFound) 
             return
         }
 
@@ -45,7 +60,7 @@ class BluetoothManager: NSObject, ObservableObject {
         isScanning = true
         // Service UUID로 버스 기기만 스캔
         centralManager.scanForPeripherals(
-            withServices: [BluetoothConfig.busServiceUUID],
+            withServices: [serviceUUID],
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
         )
 
@@ -54,7 +69,7 @@ class BluetoothManager: NSObject, ObservableObject {
             if self.isScanning {
                 Logger.log(message: "⏰ 스캔 타임아웃 - \(busNumber)번 버스를 찾지 못했습니다.")
                 self.stopScanning()
-                self.onTransmitComplete?(false)
+                self.onTransmitComplete?(.deviceNotFound)
             }
         }
     }
@@ -124,13 +139,17 @@ extension BluetoothManager: CBCentralManagerDelegate {
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         Logger.log(message: "✅ \(targetBusNumber ?? "")번 버스 연결 성공")
-        peripheral.discoverServices([BluetoothConfig.busServiceUUID])
+        if let serviceUUID = BluetoothConfig.busServiceUUID {
+            peripheral.discoverServices([serviceUUID])
+        } else {
+            centralManager.cancelPeripheralConnection(peripheral)
+        }
     }
 
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         Logger.log(message: "❌ 연결 실패: \(error?.localizedDescription ?? "알 수 없는 오류")")
         stopScanning()
-        onTransmitComplete?(false)
+        onTransmitComplete?(.failure)
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
@@ -143,25 +162,36 @@ extension BluetoothManager: CBCentralManagerDelegate {
 extension BluetoothManager: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard error == nil, let services = peripheral.services else {
-            onTransmitComplete?(false)
+            onTransmitComplete?(.failure)
+            return
+        }
+
+        guard let serviceUUID = BluetoothConfig.busServiceUUID,
+              let rxUUID = BluetoothConfig.rxCharacteristicUUID else {
+            onTransmitComplete?(.failure)
             return
         }
 
         for service in services {
-            if service.uuid == BluetoothConfig.busServiceUUID {
-                peripheral.discoverCharacteristics([BluetoothConfig.rxCharacteristicUUID], for: service)
+            if service.uuid == serviceUUID {
+                peripheral.discoverCharacteristics([rxUUID], for: service)
             }
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard error == nil, let characteristics = service.characteristics else {
-            onTransmitComplete?(false)
+            onTransmitComplete?(.failure)
+            return
+        }
+
+        guard let rxUUID = BluetoothConfig.rxCharacteristicUUID else {
+            onTransmitComplete?(.failure)
             return
         }
 
         for characteristic in characteristics {
-            if characteristic.uuid == BluetoothConfig.rxCharacteristicUUID {
+            if characteristic.uuid == rxUUID {
                 // 배려석 알림 데이터 전송
                 let message = BluetoothConfig.courtesySeatMessage(withSound: self.withSound)
                 if let data = message.data(using: .utf8) {
@@ -175,10 +205,10 @@ extension BluetoothManager: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if error == nil {
             Logger.log(message: "✅ 데이터 전송 성공!")
-            onTransmitComplete?(true)
+            onTransmitComplete?(.success)
         } else {
             Logger.log(message: "❌ 데이터 전송 실패: \(error?.localizedDescription ?? "")")
-            onTransmitComplete?(false)
+            onTransmitComplete?(.failure)
         }
 
         // 연결 해제
