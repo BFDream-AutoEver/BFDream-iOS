@@ -39,12 +39,9 @@ struct BluetoothConfig {
         return prefix
     }()
     
-    static let courtesySeatMessage: String = {
-        guard let message = infoDictionary?["COURTESY_SEAT_MESSAGE"] as? String else {
-            fatalError("COURTESY_SEAT_MESSAGE not found in Info.plist")
-        }
-        return message
-    }()
+    static func courtesySeatMessage(withSound: Bool) -> String {
+        return withSound ? "DEFAULT" : "SILENT"
+    }
     
     static let scanTimeout: TimeInterval = 10
     

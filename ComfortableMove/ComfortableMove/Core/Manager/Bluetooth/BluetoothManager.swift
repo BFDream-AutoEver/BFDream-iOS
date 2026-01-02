@@ -17,6 +17,7 @@ class BluetoothManager: NSObject, ObservableObject {
     private var rxCharacteristic: CBCharacteristic?
     private var onTransmitComplete: ((Bool) -> Void)?
     private var targetBusNumber: String?
+    private var withSound: Bool = true
 
     var onBluetoothUnsupported: (() -> Void)?
     var onBluetoothUnauthorized: (() -> Void)?
@@ -26,8 +27,9 @@ class BluetoothManager: NSObject, ObservableObject {
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
 
-    func sendCourtesySeatNotification(busNumber: String, completion: @escaping (Bool) -> Void) {
+    func sendCourtesySeatNotification(busNumber: String, withSound: Bool, completion: @escaping (Bool) -> Void) {
         self.onTransmitComplete = completion
+        self.withSound = withSound
 
         // 한글 버스 번호를 영어로 변환 (예: "강동01" → "Gangdong01", "2012" → "2012")
         let translatedBusNumber = DistrictMapper.shared.translateBusNumber(busNumber)
@@ -161,9 +163,10 @@ extension BluetoothManager: CBPeripheralDelegate {
         for characteristic in characteristics {
             if characteristic.uuid == BluetoothConfig.rxCharacteristicUUID {
                 // 배려석 알림 데이터 전송
-                if let data = BluetoothConfig.courtesySeatMessage.data(using: .utf8) {
+                let message = BluetoothConfig.courtesySeatMessage(withSound: self.withSound)
+                if let data = message.data(using: .utf8) {
                     peripheral.writeValue(data, for: characteristic, type: .withResponse)
-                    Logger.log(message: "📤 \(targetBusNumber ?? "")번 버스에 배려석 알림 전송!")
+                    Logger.log(message: "📤 \(targetBusNumber ?? "")번 버스에 배려석 알림 전송! (소리: \(self.withSound ? "ON" : "OFF"))")
                 }
             }
         }

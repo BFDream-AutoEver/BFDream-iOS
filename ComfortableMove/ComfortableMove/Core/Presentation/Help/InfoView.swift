@@ -9,7 +9,8 @@ import SwiftUI
 
 struct InfoView: View {
     private let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-    
+    @AppStorage("isSoundEnabled") private var isSoundEnabled: Bool = true
+
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
     var backButton : some View {  // <-- 👀 커스텀 버튼
@@ -37,6 +38,30 @@ struct InfoView: View {
             
             // 하단 리스트 영역
             VStack(spacing: 0) {
+                // 배려석 알림음 설정
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("배려석 알림음 on/off")
+                            .moveFont(.homeSubTitle)
+                            .foregroundColor(.mainPalette2)
+
+                        Text("알림음을 꺼도 불빛과 전광판 알림은 유지됩니다.")
+                            .moveFont(.caption)
+                            .foregroundColor(.gray.opacity(0.7))
+                    }
+
+                    Spacer()
+
+                    Toggle("", isOn: $isSoundEnabled)
+                        .labelsHidden()
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Color.white)
+
+                Divider()
+                    .padding(.leading, 20)
+
                 // 버전 정보
                 HStack {
                     Text("버전")
