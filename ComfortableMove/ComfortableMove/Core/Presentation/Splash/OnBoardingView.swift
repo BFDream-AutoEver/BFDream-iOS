@@ -50,147 +50,145 @@ struct OnBoardingView: View {
             VStack {
                 TabView(selection: $currentPage) {
                     ForEach(0..<onboardingData.count, id: \.self) { index in
-                        if (index == onboardingData.count - 1) {
-                            VStack(spacing: min(40, geometry.size.height * 0.05)) {
-                                Spacer(minLength: 0)
-
+                        ScrollView { // 스크롤 뷰 추가: 글자가 커져서 화면을 넘어가도 볼 수 있게 함
+                            VStack(spacing: 20) {
+                                Spacer(minLength: 20)
+                                
                                 Image(onboardingData[index].image)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(height: min(200, geometry.size.height * 0.25))
+                                    .frame(height: min(240, geometry.size.height * 0.3)) // 이미지 크기 유연하게 조정
+                                    .accessibleLabel(A11yLabels.onboardingImage(for: index), traits: .isImage)
 
-                                titleView(for: index)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 22)
-                                    .lineLimit(nil)
-                                    .minimumScaleFactor(0.7)
-                                    .fixedSize(horizontal: false, vertical: true)
-
-                                HStack(spacing: min(40, geometry.size.width * 0.1)) {
-                                    // 위치 권한
-                                    VStack(spacing: 8) {
-                                        Image("distance")
-                                            .resizable()
-                                            .frame(width: 48, height: 48)
-                                            .foregroundColor(.white)
-                                            .padding(8)
-
-                                        Text("위치")
-                                            .moveFont(.homeSubTitle)
-                                            .foregroundColor(.white)
-                                            .fontWeight(.bold)
-                                            .minimumScaleFactor(0.8)
-
-                                        Text("현재 버스정류장 및\n탑승할 버스 안내")
-                                            .moveFont(.caption)
-                                            .foregroundColor(.white)
-                                            .multilineTextAlignment(.center)
-                                            .lineLimit(nil)
-                                            .minimumScaleFactor(0.7)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-
-                                    // 블루투스 권한
-                                    VStack(spacing: 8) {
-                                        Image("bluetooth")
-                                            .resizable()
-                                            .frame(width: 48, height: 48)
-                                            .foregroundColor(.white)
-                                            .padding(8)
-
-                                        Text("블루투스")
-                                            .moveFont(.homeSubTitle)
-                                            .foregroundColor(.white)
-                                            .fontWeight(.bold)
-                                            .minimumScaleFactor(0.8)
-
-                                        Text("버스 내부 배려석 알림\n기기 통신")
-                                            .moveFont(.caption)
-                                            .foregroundColor(.white)
-                                            .multilineTextAlignment(.center)
-                                            .lineLimit(nil)
-                                            .minimumScaleFactor(0.7)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-                                }
-                                .padding(.horizontal, min(40, geometry.size.width * 0.1))
-
-                                Spacer(minLength: 0)
-                            }
-                            .tag(index)
-                        } else {
-                            VStack(spacing: min(40, geometry.size.height * 0.05)) {
-                                Spacer(minLength: 0)
-
-                                Image(onboardingData[index].image)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(height: min(300, geometry.size.height * 0.4))
-
-                                VStack(spacing: min(16, geometry.size.height * 0.02)) {
+                                if index == onboardingData.count - 1 {
+                                    // 권한 안내 페이지
                                     titleView(for: index)
                                         .multilineTextAlignment(.center)
-                                        .lineLimit(nil)
-                                        .minimumScaleFactor(0.7)
+                                        .padding(.horizontal, 22)
                                         .fixedSize(horizontal: false, vertical: true)
+                                        .accessibilityAddTraits(.isHeader)
 
-                                    Text(onboardingData[index].subtitle)
-                                        .moveFont(.homeSubTitle)
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.center)
-                                        .lineLimit(nil)
-                                        .minimumScaleFactor(0.7)
-                                        .fixedSize(horizontal: false, vertical: true)
+                                    HStack(spacing: 20) {
+                                        // 위치 권한
+                                        permissionItem(
+                                            icon: "distance",
+                                            title: "위치",
+                                            desc: "현재 버스정류장 및\n탑승할 버스 안내",
+                                            label: "위치 권한",
+                                            hint: "현재 버스정류장 및 탑승할 버스를 안내하기 위해 필요합니다"
+                                        )
+
+                                        // 블루투스 권한
+                                        permissionItem(
+                                            icon: "bluetooth",
+                                            title: "블루투스",
+                                            desc: "버스 내부 배려석 알림\n기기 통신",
+                                            label: "블루투스 권한",
+                                            hint: "버스 내부 배려석 알림 기기와 통신하기 위해 필요합니다"
+                                        )
+                                    }
+                                    .padding(.horizontal, 20)
+                                } else {
+                                    // 일반 온보딩 페이지
+                                    VStack(spacing: 16) {
+                                        titleView(for: index)
+                                            .multilineTextAlignment(.center)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                            .accessibilityAddTraits(.isHeader)
+
+                                        Text(onboardingData[index].subtitle)
+                                            .moveFont(.homeSubTitle)
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                            .fixedSize(horizontal: false, vertical: true) // 세로로 늘어나도록 허용
+                                    }
+                                    .padding(.horizontal, 22)
+                                    .accessibleGroup(combine: true)
                                 }
-                                .padding(.horizontal, 22)
-
-                                Spacer(minLength: 0)
+                                
+                                Spacer(minLength: 40) // 하단 버튼과의 간격 확보
                             }
-                            .tag(index)
+                            .frame(minHeight: geometry.size.height - 100) // 탭뷰 내부 높이 확보
                         }
+                        .tag(index)
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                .onChange(of: currentPage) { _, newValue in
+                    let announcement = "\(newValue + 1)페이지"
+                    UIAccessibility.post(notification: .pageScrolled, argument: announcement)
+                }
 
+                // 하단 인디케이터 및 버튼 영역 (고정)
                 VStack(spacing: 20) {
                     HStack(spacing: 8) {
-                        ForEach(0..<onboardingData.count, id: \.self) { index in
+                        ForEach(0..<onboardingData.count, id: \.self) {
+                            index in
                             Circle()
                                 .fill(currentPage == index ? Color("MainPalette1") : Color("OnboardingGray"))
                                 .frame(width: 8, height: 8)
+                                .accessibleLabel(
+                                    A11yLabels.pageIndicator(index, isCurrent: currentPage == index),
+                                    value: A11yLabels.pageIndicatorValue(isCurrent: currentPage == index)
+                                )
                         }
                     }
+                    .accessibilityElement(children: .ignore)
 
-                    if currentPage == onboardingData.count - 1 {
-                        Button(action: {
+                    Button(action: {
+                        HapticManager.shared.impact(style: .light)
+                        if currentPage == onboardingData.count - 1 {
                             onOnBoardingCompleted()
-                        }) {
-                            Text("시작하기")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 160, height: 60)
-                                .background(Color("MainPalette1"))
-                                .cornerRadius(12)
-                        }
-                    } else {
-                        Button(action: {
+                        } else {
                             withAnimation {
                                 currentPage += 1
+                                let announcement = "페이지 이동. \(currentPage + 1)페이지"
+                                UIAccessibility.post(notification: .pageScrolled, argument: announcement)
                             }
-                        }) {
-                            Text("다음")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 160, height: 60)
-                                .background(Color("MainPalette1"))
-                                .cornerRadius(12)
                         }
+                    }) {
+                        Text(currentPage == onboardingData.count - 1 ? "시작하기" : "다음")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: 60) // 최소 높이 설정 (글자가 커지면 버튼도 커짐)
+                            .background(Color("MainPalette1"))
+                            .cornerRadius(12)
+                            .padding(.horizontal, 40)
                     }
+                    .accessibleLabel(currentPage == onboardingData.count - 1 ? "시작하기" : "다음 페이지", traits: .isButton)
                 }
-                .padding(.bottom, 50)
+                .padding(.bottom, 20)
+                .background(Color("BFPrimaryColor")) // 버튼 영역 배경색 (스크롤 위로 덮일 때 자연스럽게)
             }
             .background(Color("BFPrimaryColor"))
         }
+    }
+    
+    // 권한 아이템 뷰 추출 (코드 중복 제거 및 안전성 확보)
+    private func permissionItem(icon: String, title: String, desc: String, label: String, hint: String) -> some View {
+        VStack(spacing: 8) {
+            Image(icon)
+                .resizable()
+                .frame(width: 48, height: 48)
+                .foregroundColor(.white)
+                .padding(8)
+                .decorativeImage()
+
+            Text(title)
+                .moveFont(.homeSubTitle)
+                .foregroundColor(.white)
+                .fontWeight(.bold)
+                .minimumScaleFactor(0.8)
+
+            Text(desc)
+                .moveFont(.caption)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibleGroup(combine: true, label: label, hint: hint)
     }
     
     @ViewBuilder
@@ -233,5 +231,5 @@ struct OnBoardingView: View {
 }
 
 #Preview {
-    OnBoardingView(onOnBoardingCompleted: {})
+    OnBoardingView(onOnBoardingCompleted: {}) 
 }
