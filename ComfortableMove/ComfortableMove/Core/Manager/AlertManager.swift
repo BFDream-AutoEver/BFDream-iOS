@@ -18,6 +18,7 @@ enum AlertType: Identifiable {
     case bluetoothConfirm(busName: String, onConfirm: () -> Void, onCancel: () -> Void)
     case bluetoothSuccess
     case bluetoothFailure
+    case busDeviceNotFound // 추가
 
     var id: String {
         switch self {
@@ -29,6 +30,7 @@ enum AlertType: Identifiable {
         case .bluetoothConfirm: return "bluetoothConfirm"
         case .bluetoothSuccess: return "bluetoothSuccess"
         case .bluetoothFailure: return "bluetoothFailure"
+        case .busDeviceNotFound: return "busDeviceNotFound"
         }
     }
 
@@ -36,7 +38,7 @@ enum AlertType: Identifiable {
         switch self {
         case .locationUnauthorized: return 3
         case .bluetoothUnsupported, .bluetoothUnauthorized: return 2
-        case .bluetoothConfirm, .bluetoothSuccess, .bluetoothFailure: return 1
+        case .bluetoothConfirm, .bluetoothSuccess, .bluetoothFailure, .busDeviceNotFound: return 1
         case .noBusInfo: return 1
         case .apiError: return 0
         }
@@ -60,6 +62,8 @@ enum AlertType: Identifiable {
             return "알림 전송 완료"
         case .bluetoothFailure:
             return "버스 배려석 알림 전송에 실패하였습니다."
+        case .busDeviceNotFound:
+            return "알림 기기를 찾을 수 없음"
         }
     }
 
@@ -72,15 +76,17 @@ enum AlertType: Identifiable {
         case .bluetoothUnsupported:
             return "이 기기는 블루투스를 지원하지 않습니다.\n배려석 알림 기능을 사용할 수 없습니다."
         case .bluetoothUnauthorized:
-            return "블루투스 권한이 필요합니다.\n설정에서 블루투스 권한을 허용해주세요."
+            return "블루투스 권한이 필요합니다.\n'설정 > 맘편한 이동'에서 블루투스 권한을 허용해주세요."
         case .locationUnauthorized:
-            return "위치 권한이 필요합니다.\n설정에서 위치 권한을 허용해주세요."
+            return "위치 권한이 필요합니다.\n'설정 > 맘편한 이동 > 위치'에서 '앱을 사용하는 동안'으로 설정해주세요."
         case .bluetoothConfirm:
             return ""
         case .bluetoothSuccess:
             return ""
         case .bluetoothFailure:
             return "다시 한번 시도해주세요."
+        case .busDeviceNotFound:
+            return "해당 버스에 알림 기기가 설치되지 않았거나,\n현재 신호가 약하여 연결할 수 없습니다."
         }
     }
 
@@ -89,6 +95,8 @@ enum AlertType: Identifiable {
         case .bluetoothUnsupported, .bluetoothUnauthorized, .locationUnauthorized:
             return true
         case .noBusInfo, .apiError, .bluetoothConfirm, .bluetoothSuccess, .bluetoothFailure:
+            return false
+        case .busDeviceNotFound:
             return false
         }
     }
