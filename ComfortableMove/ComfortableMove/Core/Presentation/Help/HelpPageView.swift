@@ -21,11 +21,13 @@ struct HelpPageView: View {
     
     private var backButton: some View {
         Button(action: {
+            HapticManager.shared.impact(style: .light)
             dismiss()
         }) {
             Image(systemName: "chevron.left")
                 .foregroundColor(.white)
         }
+        .accessibleLabel(A11yLabels.back, traits: .isButton)
     }
     
     var body: some View {
@@ -36,6 +38,7 @@ struct HelpPageView: View {
                     .interpolation(.high)
                     .scaledToFit()
                     .tag(index)
+                    .accessibleLabel(A11yLabels.helpPageDescription(for: index), hint: A11yLabels.helpImageHint, traits: .isImage)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -55,6 +58,7 @@ struct HelpPageView: View {
                 Text("도움말")
                     .moveFont(.homeMediumTitle)
                     .foregroundColor(.white)
+                    .accessibilityAddTraits(.isHeader)
             }
         }
         .toolbarBackground(Color("BFPrimaryColor"), for: .navigationBar)
