@@ -18,10 +18,12 @@ struct SplashView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 304, height: 168)
+                .accessibleLabel(A11yLabels.appLogo, hint: A11yLabels.appLogoHint, traits: .isImage)
             
             Text("예비 엄마의 마음 편한 이동")
                 .moveFont(.homeMediumTitle)
                 .foregroundColor(.white.opacity(0.9))
+                .accessibleLabel(A11yLabels.splashText)
             
             Spacer()
         }
