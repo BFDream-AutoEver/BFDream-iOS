@@ -408,7 +408,7 @@ struct HomeView: View {
 
         Task {
             do {
-                let stations = try await BusStopService.shared.getNearbyStations(location: location, radius: 500)
+                let stations = try await BusStopService.shared.getNearbyStations(location: location, radius: 100)
 
                 // 가장 가까운 정류소 선택
                 if let nearest = stations.first {
