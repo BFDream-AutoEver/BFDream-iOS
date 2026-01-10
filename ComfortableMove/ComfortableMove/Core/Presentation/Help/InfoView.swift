@@ -58,6 +58,7 @@ struct InfoView: View {
 
                     Toggle("", isOn: $isSoundEnabled)
                         .labelsHidden()
+                        .padding(12) // 터치 영역 확보
                         .onChange(of: isSoundEnabled) { _, _ in
                             HapticManager.shared.impact(style: .light) // 토글 시 햅틱
                         }
