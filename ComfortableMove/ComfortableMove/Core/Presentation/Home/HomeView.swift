@@ -25,6 +25,9 @@ struct HomeView: View {
     @State private var isButtonTapped = false
     @AppStorage("isSoundEnabled") private var isSoundEnabled: Bool = true
 
+    // 자동 새로고침 타이머 (1분마다)
+    private let autoRefreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
 
     var body: some View {
         GeometryReader { geometry in
@@ -301,6 +304,12 @@ struct HomeView: View {
                 }
                 .alert(item: $alertManager.currentAlert) { alertType in
                     createAlert(for: alertType)
+                }
+                .onReceive(autoRefreshTimer) { _ in
+                    // 1분마다 버스 도착 정보 자동 새로고침
+                    if nearestStation != nil {
+                        refreshBusArrivals()
+                    }
                 }
                 .navigationBarHidden(true)
             }

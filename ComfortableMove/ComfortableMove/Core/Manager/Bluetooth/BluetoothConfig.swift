@@ -49,7 +49,7 @@ struct BluetoothConfig {
         return withSound ? "DEFAULT" : "SILENT"
     }
     
-    static let scanTimeout: TimeInterval = 10
+    static let scanTimeout: TimeInterval = 5
     
     static func busNumber(from deviceName: String) -> String? {
         guard deviceName.hasPrefix(deviceNamePrefix) else {
