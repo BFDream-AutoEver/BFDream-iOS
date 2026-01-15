@@ -10,10 +10,11 @@ import SwiftUI
 struct InfoView: View {
     private let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     @AppStorage("isSoundEnabled") private var isSoundEnabled: Bool = true
+    @StateObject private var alertManager = AlertManager()
 
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
-    var backButton : some View {  // <-- 👀 커스텀 버튼
+    var backButton : some View {  // <-- 커스텀 버튼
         Button{
             HapticManager.shared.impact(style: .light) // 햅틱 추가
             self.presentationMode.wrappedValue.dismiss()
@@ -51,6 +52,7 @@ struct InfoView: View {
                         Text("알림음을 꺼도 불빛과 전광판 알림은 유지됩니다.")
                             .moveFont(.caption)
                             .foregroundColor(.gray.opacity(0.7))
+                            .fixedSize(horizontal: false, vertical: true) // 줄바꿈 허용
                     }
                     .accessibleGroup(combine: true) // 텍스트 그룹화
 
@@ -58,7 +60,7 @@ struct InfoView: View {
 
                     Toggle("", isOn: $isSoundEnabled)
                         .labelsHidden()
-                        .padding(12) // 터치 영역 확보
+                        .padding(.leading, 12)
                         .onChange(of: isSoundEnabled) { _, _ in
                             HapticManager.shared.impact(style: .light) // 토글 시 햅틱
                         }
@@ -91,9 +93,13 @@ struct InfoView: View {
                 
                 // 앱 문의
                 Button(action: {
-                    HapticManager.shared.impact(style: .light) // 햅틱 추가
+                    HapticManager.shared.impact(style: .light)
                     if let url = URL(string: "https://forms.gle/rnSD44sUEuy1nLaH6") {
-                        UIApplication.shared.open(url)
+                        alertManager.showAlert(.externalLink(
+                            title: "앱 문의",
+                            url: url,
+                            onConfirm: { UIApplication.shared.open(url) }
+                        ))
                     }
                 }) {
                     HStack {
@@ -116,9 +122,13 @@ struct InfoView: View {
                 
                 // 개인정보 처리 방침 및 이용약관
                 Button(action: {
-                    HapticManager.shared.impact(style: .light) // 햅틱 추가
+                    HapticManager.shared.impact(style: .light)
                     if let url = URL(string: "https://important-hisser-903.notion.site/10-22-ver-29a65f12c44480b6b591e726c5c80f89?source=copy_link") {
-                        UIApplication.shared.open(url)
+                        alertManager.showAlert(.externalLink(
+                            title: "개인정보 처리 방침 및 이용약관",
+                            url: url,
+                            onConfirm: { UIApplication.shared.open(url) }
+                        ))
                     }
                 }) {
                     HStack {
@@ -157,6 +167,34 @@ struct InfoView: View {
         .toolbarBackground(Color("BFPrimaryColor"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .alert(item: $alertManager.currentAlert) { alertType in
+            createAlert(for: alertType)
+        }
+    }
+
+    // MARK: - Create Alert
+    private func createAlert(for alertType: AlertType) -> Alert {
+        if case .externalLink(_, _, let onConfirm) = alertType {
+            return Alert(
+                title: Text(alertType.title),
+                message: Text(alertType.message),
+                primaryButton: .default(Text("이동")) {
+                    alertManager.dismissAlert()
+                    onConfirm()
+                },
+                secondaryButton: .cancel(Text("취소")) {
+                    alertManager.dismissAlert()
+                }
+            )
+        }
+
+        return Alert(
+            title: Text(alertType.title),
+            message: Text(alertType.message),
+            dismissButton: .default(Text("확인")) {
+                alertManager.dismissAlert()
+            }
+        )
     }
 }
 
