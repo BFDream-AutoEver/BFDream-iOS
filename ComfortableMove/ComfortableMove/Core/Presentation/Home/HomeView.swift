@@ -23,6 +23,7 @@ struct HomeView: View {
 
     // 버튼 상태
     @State private var isButtonTapped = false
+    @State private var isWaitingForBluetooth = false // Bluetooth 응답 대기 상태
     @AppStorage("isSoundEnabled") private var isSoundEnabled: Bool = true
 
     // 자동 새로고침 타이머 (1분마다)
@@ -99,12 +100,29 @@ struct HomeView: View {
                                     }
                                 }) {
                                     ZStack {
-                                        Image(isButtonTapped ? "buttonTappedImage" : "buttonImage")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 240, height: 240)
+                                        if isWaitingForBluetooth {
+                                            // Bluetooth 응답 대기 중: 흰 바탕에 ProgressView
+                                            Circle()
+                                                .fill(Color.white)
+                                                .frame(width: 240, height: 240)
+                                                .overlay(
+                                                    ProgressView()
+                                                        .progressViewStyle(CircularProgressViewStyle(tint: Color("BFPrimaryColor")))
+                                                        .scaleEffect(4.0)
+                                                )
+                                                .transition(.opacity)
+                                        } else {
+                                            // 일반 상태: 버튼 이미지 표시
+                                            Image(isButtonTapped ? "buttonTappedImage" : "buttonImage")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 240, height: 240)
+                                                .transition(.opacity)
+                                        }
                                     }
+                                    .animation(.easeInOut(duration: 0.3), value: isWaitingForBluetooth)
                                 }
+                                .disabled(isWaitingForBluetooth)
                                 .accessibleLabel(
                                     A11yLabels.notificationButton(selected: isButtonTapped, busName: selectedBusName),
                                     hint: A11yLabels.notificationButtonHint(selected: isButtonTapped, busName: selectedBusName),
@@ -372,10 +390,18 @@ struct HomeView: View {
     // MARK: - 배려석 알림 전송
     private func sendCourtesySeatNotification() {
         Logger.log(message: "📲 sendCourtesySeatNotification 호출됨 - 버스: \(selectedBusName)")
+
+        // Bluetooth 응답 대기 상태 시작
+        isWaitingForBluetooth = true
+
         bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName, withSound: isSoundEnabled) { result in
             DispatchQueue.main.async {
                 Logger.log(message: "📲 Bluetooth 전송 결과: \(result)")
-                
+
+                // Bluetooth 응답 대기 상태 종료 및 버튼 상태 초기화 (Alert 표시 전에 먼저 처리)
+                isWaitingForBluetooth = false
+                resetButtonState()
+
                 switch result {
                 case .success:
                     HapticManager.shared.notification(type: .success)
@@ -389,9 +415,6 @@ struct HomeView: View {
                     HapticManager.shared.notification(type: .error)
                     alertManager.showAlert(.bluetoothFailure)
                 }
-                
-                // 알림 전송 시도 후 초기화
-                resetButtonState()
             }
         }
     }
