@@ -80,219 +80,222 @@ struct HomeView: View {
                         .background(Color("BFPrimaryColor"))
                     }
 
-                    // 메인 콘텐츠 영역 (스크롤 가능)
-                    ScrollView {
-                        VStack(spacing: 30) {
-                            // 중앙 버튼 영역
-                            VStack(spacing: 16) {
-                                Button(action: {
-                                    Logger.log(message: "🔘 중앙 버튼 클릭 - selectedRouteName: \(selectedRouteName ?? "nil"), isButtonTapped: \(isButtonTapped)")
-                                    if selectedRouteName != nil && isButtonTapped {
-                                        HapticManager.shared.impact(style: .medium)
-                                        Logger.log(message: "✅ 확인 Alert 표시")
-                                        alertManager.showAlert(.bluetoothConfirm(
-                                            busName: selectedBusName,
-                                            onConfirm: { sendCourtesySeatNotification() },
-                                            onCancel: { resetButtonState() }
-                                        ))
+                    // 메인 콘텐츠 영역 (일부 스크롤 가능)
+                    VStack(spacing: 30) {
+                        // 중앙 버튼 영역
+                        VStack(spacing: 16) {
+                            Button(action: {
+                                Logger.log(message: "🔘 중앙 버튼 클릭 - selectedRouteName: \(selectedRouteName ?? "nil"), isButtonTapped: \(isButtonTapped)")
+                                if selectedRouteName != nil && isButtonTapped {
+                                    HapticManager.shared.impact(style: .medium)
+                                    Logger.log(message: "✅ 확인 Alert 표시")
+                                    alertManager.showAlert(.bluetoothConfirm(
+                                        busName: selectedBusName,
+                                        onConfirm: { sendCourtesySeatNotification() },
+                                        onCancel: { resetButtonState() }
+                                    ))
+                                } else {
+                                    HapticManager.shared.notification(type: .warning)
+                                }
+                            }) {
+                                ZStack {
+                                    if isWaitingForBluetooth {
+                                        // Bluetooth 응답 대기 중: 흰 바탕에 ProgressView
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 240, height: 240)
+                                            .overlay(
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: Color("BFPrimaryColor")))
+                                                    .scaleEffect(4.0)
+                                            )
+                                            .transition(.opacity)
                                     } else {
-                                        HapticManager.shared.notification(type: .warning)
+                                        // 일반 상태: 버튼 이미지 표시
+                                        Image(isButtonTapped ? "buttonTappedImage" : "buttonImage")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 240, height: 240)
+                                            .transition(.opacity)
                                     }
-                                }) {
-                                    ZStack {
-                                        if isWaitingForBluetooth {
-                                            // Bluetooth 응답 대기 중: 흰 바탕에 ProgressView
-                                            Circle()
-                                                .fill(Color.white)
-                                                .frame(width: 240, height: 240)
-                                                .overlay(
-                                                    ProgressView()
-                                                        .progressViewStyle(CircularProgressViewStyle(tint: Color("BFPrimaryColor")))
-                                                        .scaleEffect(4.0)
-                                                )
-                                                .transition(.opacity)
-                                        } else {
-                                            // 일반 상태: 버튼 이미지 표시
-                                            Image(isButtonTapped ? "buttonTappedImage" : "buttonImage")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                                .frame(width: 240, height: 240)
-                                                .transition(.opacity)
-                                        }
-                                    }
-                                    .animation(.easeInOut(duration: 0.3), value: isWaitingForBluetooth)
                                 }
-                                .disabled(isWaitingForBluetooth)
-                                .accessibleLabel(
-                                    A11yLabels.notificationButton(selected: isButtonTapped, busName: selectedBusName),
-                                    hint: A11yLabels.notificationButtonHint(selected: isButtonTapped, busName: selectedBusName),
-                                    value: isButtonTapped ? A11yLabels.notificationButtonValueSelected : A11yLabels.notificationButtonValueUnselected,
-                                    traits: .isButton
-                                )
-
-                                // 버튼 아래 텍스트
-                                Text(isButtonTapped ? "선택 완료! 알림을 울려주세요" : "버스 선택 후, 알림을 울려주세요!")
-                                    .moveFont(.homeSubTitle)
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.center)
-                                    .fixedSize(horizontal: false, vertical: true) // 줄바꿈 허용
-                                    .accessibilityHidden(true)
+                                .animation(.easeInOut(duration: 0.3), value: isWaitingForBluetooth)
                             }
-                            .padding(.top, 20)
-                            
-                            // 하단 버스 정보 리스트 카드
-                            VStack(spacing: 0) {
-                                // 첫 번째 칸 - 정류장 정보
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(nearestStation?.stationNm ?? "정류장을 찾는 중...")
-                                            .moveFont(.homeSubTitle)
-                                            .foregroundColor(.black)
-                                            .fixedSize(horizontal: false, vertical: true)
+                            .disabled(isWaitingForBluetooth)
+                            .accessibleLabel(
+                                A11yLabels.notificationButton(selected: isButtonTapped, busName: selectedBusName),
+                                hint: A11yLabels.notificationButtonHint(selected: isButtonTapped, busName: selectedBusName),
+                                value: isButtonTapped ? A11yLabels.notificationButtonValueSelected : A11yLabels.notificationButtonValueUnselected,
+                                traits: .isButton
+                            )
 
-                                        Text("사용자와 100m 이내의 버스정류장 정보가 표시됩니다.")
-                                            .moveFont(.caption)
-                                            .foregroundColor(.gray)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-                                    .accessibleGroup(combine: true, label: A11yLabels.stationInfo(name: nearestStation?.stationNm ?? "찾는 중", distance: "100m 이내"))
+                            // 버튼 아래 텍스트
+                            Text(isButtonTapped ? "선택 완료! 알림을 울려주세요" : "버스 선택 후, 알림을 울려주세요!")
+                                .moveFont(.homeSubTitle)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true) // 줄바꿈 허용
+                                .accessibilityHidden(true)
+                        }
+                        .padding(.top, 20)
+                        
+                        // 하단 버스 정보 리스트 카드
+                        VStack(spacing: 0) {
+                            // 첫 번째 칸 - 정류장 정보
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(nearestStation?.stationNm ?? "정류장을 찾는 중...")
+                                        .moveFont(.homeSubTitle)
+                                        .foregroundColor(.black)
+                                        .fixedSize(horizontal: false, vertical: true)
 
-                                    Spacer()
-
-                                    Button(action: {
-                                        refreshLocation()
-                                        UIAccessibility.post(notification: .announcement, argument: "위치 정보를 새로고침합니다")
-                                    }) {
-                                        Image(systemName: "arrow.clockwise")
-                                            .font(.title2)
-                                            .foregroundColor(.gray)
-                                            .padding(12) // 터치 영역 확보 (44pt 이상)
-                                            .background(Color.white.opacity(0.01)) // 투명 배경으로 터치 영역 채움
-                                            .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
-                                            .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
-                                    }
-                                    .disabled(isLoadingArrivals)
-                                    .accessibleLabel(A11yLabels.refresh, hint: A11yLabels.refreshHint, traits: .isButton)
+                                    Text("사용자와 100m 이내의 버스정류장 정보가 표시됩니다.")
+                                        .moveFont(.caption)
+                                        .foregroundColor(.gray)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .background(Color.white)
+                                .accessibleGroup(combine: true, label: A11yLabels.stationInfo(name: nearestStation?.stationNm ?? "찾는 중", distance: "100m 이내"))
 
-                                Divider()
+                                Spacer()
 
-                                // 버스 노선들 (API에서 가져온 실시간 정보)
-                                ForEach(Array(busArrivals.keys.sorted()), id: \.self) { routeName in
-                                    if let arrivalInfo = busArrivals[routeName] {
-                                        VStack(spacing: 0) {
-                                            HStack {
-                                                // 버스 정보 (아이콘 + 텍스트)
+                                Button(action: {
+                                    refreshLocation()
+                                    UIAccessibility.post(notification: .announcement, argument: "위치 정보를 새로고침합니다")
+                                }) {
+                                    Image(systemName: "arrow.clockwise")
+                                        .font(.title2)
+                                        .foregroundColor(.gray)
+                                        .padding(12) // 터치 영역 확보 (44pt 이상)
+                                        .background(Color.white.opacity(0.01)) // 투명 배경으로 터치 영역 채움
+                                        .rotationEffect(.degrees(isLoadingArrivals ? 360 : 0))
+                                        .animation(isLoadingArrivals ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoadingArrivals)
+                                }
+                                .disabled(isLoadingArrivals)
+                                .accessibleLabel(A11yLabels.refresh, hint: A11yLabels.refreshHint, traits: .isButton)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color.white)
+
+                            Divider()
+
+                            // 버스 노선들 (API에서 가져온 실시간 정보)
+                            ScrollView {
+                                VStack(spacing: 0) {
+                                    ForEach(Array(busArrivals.keys.sorted()), id: \.self) { routeName in
+                                        if let arrivalInfo = busArrivals[routeName] {
+                                            VStack(spacing: 0) {
                                                 HStack {
-                                                    Image(systemName: "bus")
-                                                        .foregroundColor(arrivalInfo.busType.color)
-                                                        .decorativeImage()
+                                                    // 버스 정보 (아이콘 + 텍스트)
+                                                    HStack {
+                                                        Image(systemName: "bus")
+                                                            .foregroundColor(arrivalInfo.busType.color)
+                                                            .decorativeImage()
 
-                                                    VStack(alignment: .leading, spacing: 4) {
-                                                        HStack(spacing: 4) {
-                                                            Text(routeName)
-                                                                .moveFont(.homeSubTitle)
-                                                                .foregroundColor(arrivalInfo.busType.color)
-                                                                .fontWeight(.bold)
-                                                                .layoutPriority(1) // 버스 번호 우선 표시
+                                                        VStack(alignment: .leading, spacing: 4) {
+                                                            HStack(spacing: 4) {
+                                                                Text(routeName)
+                                                                    .moveFont(.homeSubTitle)
+                                                                    .foregroundColor(arrivalInfo.busType.color)
+                                                                    .fontWeight(.bold)
+                                                                    .layoutPriority(1) // 버스 번호 우선 표시
 
-                                                            if !arrivalInfo.busType.displayName.isEmpty {
-                                                                Text(arrivalInfo.busType.displayName)
-                                                                    .moveFont(.caption)
-                                                                    .foregroundColor(.gray)
+                                                                if !arrivalInfo.busType.displayName.isEmpty {
+                                                                    Text(arrivalInfo.busType.displayName)
+                                                                        .moveFont(.caption)
+                                                                        .foregroundColor(.gray)
+                                                                }
                                                             }
-                                                        }
 
-                                                        HStack(spacing: 4) {
-                                                            if let arrivalMsg = arrivalInfo.arrmsg1 {
-                                                                Text(arrivalMsg)
+                                                            HStack(spacing: 4) {
+                                                                if let arrivalMsg = arrivalInfo.arrmsg1 {
+                                                                    Text(arrivalMsg)
+                                                                        .moveFont(.caption)
+                                                                        .foregroundColor(.gray)
+                                                                        .fixedSize(horizontal: false, vertical: true)
+                                                                }
+
+                                                                if arrivalInfo.congestion != .unknown {
+                                                                    Text(arrivalInfo.congestion.rawValue)
+                                                                        .moveFont(.caption)
+                                                                        .foregroundColor(arrivalInfo.congestion.color)
+                                                                }
+                                                            }
+
+                                                            if let direction = arrivalInfo.adirection {
+                                                                Text("\(direction) 방면")
                                                                     .moveFont(.caption)
-                                                                    .foregroundColor(.gray)
+                                                                    .foregroundColor(.gray.opacity(0.8))
                                                                     .fixedSize(horizontal: false, vertical: true)
                                                             }
-
-                                                            if arrivalInfo.congestion != .unknown {
-                                                                Text(arrivalInfo.congestion.rawValue)
-                                                                    .moveFont(.caption)
-                                                                    .foregroundColor(arrivalInfo.congestion.color)
-                                                            }
-                                                        }
-
-                                                        if let direction = arrivalInfo.adirection {
-                                                            Text("\(direction) 방면")
-                                                                .moveFont(.caption)
-                                                                .foregroundColor(.gray.opacity(0.8))
-                                                                .fixedSize(horizontal: false, vertical: true)
                                                         }
                                                     }
-                                                }
-                                                .accessibleGroup(combine: true)
+                                                    .accessibleGroup(combine: true)
 
-                                                Spacer()
+                                                    Spacer()
 
-                                                // 선택 버튼
-                                                Button(action: {
-                                                    // 새로운 노선 선택 시
-                                                    if selectedRouteName != routeName {
-                                                        selectedRouteName = routeName
-                                                        isButtonTapped = true
-                                                        HapticManager.shared.impact(style: .light)
-                                                        
-                                                        let announcement = A11yLabels.busSelectedAnnouncement(
-                                                            routeName: routeName,
-                                                            arrivalMsg: arrivalInfo.arrmsg1,
-                                                            congestion: arrivalInfo.congestion != .unknown ? arrivalInfo.congestion.rawValue : nil,
-                                                            direction: arrivalInfo.adirection
-                                                        )
-                                                        UIAccessibility.post(notification: .announcement, argument: announcement)
-                                                    } else {
-                                                        // 이미 선택된 것을 다시 누르면 선택 해제
-                                                        selectedRouteName = nil
-                                                        isButtonTapped = false
-                                                        UIAccessibility.post(notification: .announcement, argument: "선택이 해제되었습니다.")
-                                                    }
-                                                }) {
-                                                    ZStack {
-                                                        // 터치 영역 확장을 위한 투명 배경
-                                                        Color.clear
-                                                            .frame(width: 44, height: 44)
-                                                        
-                                                        Circle()
-                                                            .fill(selectedRouteName == routeName ? arrivalInfo.busType.color : Color.gray.opacity(0.3))
-                                                            .frame(width: 24, height: 24)
-                                                            .overlay(
-                                                                Image(systemName: "checkmark")
-                                                                    .font(.system(size: 12, weight: .bold))
-                                                                    .foregroundColor(.white)
+                                                    // 선택 버튼
+                                                    Button(action: {
+                                                        // 새로운 노선 선택 시
+                                                        if selectedRouteName != routeName {
+                                                            selectedRouteName = routeName
+                                                            isButtonTapped = true
+                                                            HapticManager.shared.impact(style: .light)
+                                                            
+                                                            let announcement = A11yLabels.busSelectedAnnouncement(
+                                                                routeName: routeName,
+                                                                arrivalMsg: arrivalInfo.arrmsg1,
+                                                                congestion: arrivalInfo.congestion != .unknown ? arrivalInfo.congestion.rawValue : nil,
+                                                                direction: arrivalInfo.adirection
                                                             )
+                                                            UIAccessibility.post(notification: .announcement, argument: announcement)
+                                                        } else {
+                                                            // 이미 선택된 것을 다시 누르면 선택 해제
+                                                            selectedRouteName = nil
+                                                            isButtonTapped = false
+                                                            UIAccessibility.post(notification: .announcement, argument: "선택이 해제되었습니다.")
+                                                        }
+                                                    }) {
+                                                        ZStack {
+                                                            // 터치 영역 확장을 위한 투명 배경
+                                                            Color.clear
+                                                                .frame(width: 44, height: 44)
+                                                            
+                                                            Circle()
+                                                                .fill(selectedRouteName == routeName ? arrivalInfo.busType.color : Color.gray.opacity(0.3))
+                                                                .frame(width: 24, height: 24)
+                                                                .overlay(
+                                                                    Image(systemName: "checkmark")
+                                                                        .font(.system(size: 12, weight: .bold))
+                                                                        .foregroundColor(.white)
+                                                                )
+                                                        }
                                                     }
+                                                    .buttonStyle(PlainButtonStyle())
+                                                    .accessibleLabel(
+                                                        A11yLabels.busSelection(routeName: routeName, isSelected: selectedRouteName == routeName),
+                                                        hint: A11yLabels.busSelectionHint(isSelected: selectedRouteName == routeName),
+                                                        value: A11yLabels.busSelectionValue(isSelected: selectedRouteName == routeName),
+                                                        traits: [.isButton, selectedRouteName == routeName ? .isSelected : []]
+                                                    )
                                                 }
-                                                .buttonStyle(PlainButtonStyle())
-                                                .accessibleLabel(
-                                                    A11yLabels.busSelection(routeName: routeName, isSelected: selectedRouteName == routeName),
-                                                    hint: A11yLabels.busSelectionHint(isSelected: selectedRouteName == routeName),
-                                                    value: A11yLabels.busSelectionValue(isSelected: selectedRouteName == routeName),
-                                                    traits: [.isButton, selectedRouteName == routeName ? .isSelected : []]
-                                                )
-                                            }
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 12)
-                                            .background(Color.white)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 12)
+                                                .background(Color.white)
 
-                                            Divider()
+                                                Divider()
+                                            }
                                         }
                                     }
                                 }
                             }
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .padding(.horizontal, 16)
-                            
-                            Spacer(minLength: 40)
+                            .frame(maxHeight: 240) // 3개 항목 높이로 제한 (항목당 약 80pt)
                         }
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .padding(.horizontal, 16)
+                        
+                        Spacer()
                     }
                 }
                 .background(Color("BFPrimaryColor"))
