@@ -160,7 +160,8 @@ enum BusCongestion: String {
 }
 
 // MARK: - 버스 도착 정보 아이템
-struct BusArrivalItem: Codable {
+struct BusArrivalItem: Codable, Identifiable {
+    var id: String { "\(rtNm)-\(arrmsg1 ?? UUID().uuidString)" }
     let rtNm: String           // 노선명 (예: "721")
     let arrmsg1: String?       // 첫번째 버스 도착 메시지 (예: "2분후[2번째 전]")
     let adirection: String?    // 방향 (예: "신설동")

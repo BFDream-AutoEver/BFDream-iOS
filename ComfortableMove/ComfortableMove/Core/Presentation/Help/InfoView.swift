@@ -47,11 +47,11 @@ struct InfoView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("배려석 알림음 on/off")
                             .moveFont(.homeSubTitle)
-                            .foregroundColor(.mainPalette2)
+                            .foregroundColor(Color("MainPalette2"))
 
                         Text("알림음을 꺼도 불빛과 전광판 알림은 유지됩니다.")
                             .moveFont(.caption)
-                            .foregroundColor(.gray.opacity(0.7))
+                            .foregroundColor(.black)
                             .fixedSize(horizontal: false, vertical: true) // 줄바꿈 허용
                     }
                     .accessibleGroup(combine: true) // 텍스트 그룹화
@@ -61,6 +61,7 @@ struct InfoView: View {
                     Toggle("", isOn: $isSoundEnabled)
                         .labelsHidden()
                         .padding(.leading, 12)
+                        .tint(Color("MainPalette2"))
                         .onChange(of: isSoundEnabled) { _, _ in
                             HapticManager.shared.impact(style: .light) // 토글 시 햅틱
                         }
@@ -77,11 +78,11 @@ struct InfoView: View {
                 HStack {
                     Text("버전")
                         .moveFont(.homeSubTitle)
-                        .foregroundColor(.mainPalette2)
+                        .foregroundColor(Color("MainPalette2"))
                     Spacer()
                     Text("v \(appVersion)")
                         .moveFont(.homeSubTitle)
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color("MainPalette2"))
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
@@ -105,11 +106,11 @@ struct InfoView: View {
                     HStack {
                         Text("앱 문의")
                             .moveFont(.homeSubTitle)
-                            .foregroundColor(.mainPalette2)
+                            .foregroundColor(Color("MainPalette2"))
                         Spacer()
                         Image(systemName: "chevron.right")
                             .moveFont(.homeSubTitle)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color("MainPalette2"))
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
@@ -134,11 +135,11 @@ struct InfoView: View {
                     HStack {
                         Text("개인정보 처리 방침 및 이용약관")
                             .moveFont(.homeSubTitle)
-                            .foregroundColor(.mainPalette2)
+                            .foregroundColor(Color("MainPalette2"))
                         Spacer()
                         Image(systemName: "chevron.right")
                             .moveFont(.homeSubTitle)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color("MainPalette2"))
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
