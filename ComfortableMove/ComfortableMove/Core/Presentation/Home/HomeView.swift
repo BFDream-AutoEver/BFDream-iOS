@@ -97,6 +97,7 @@ struct HomeView: View {
                                     ))
                                 } else {
                                     HapticManager.shared.notification(type: .warning)
+                                    alertManager.showAlert(.busNotSelected)
                                 }
                             }) {
                                 ZStack {

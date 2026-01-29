@@ -20,6 +20,7 @@ enum AlertType: Identifiable {
     case bluetoothSuccess
     case bluetoothFailure
     case busDeviceNotFound
+    case busNotSelected
     case externalLink(title: String, url: URL, onConfirm: () -> Void)
     case networkUnavailable
 
@@ -34,6 +35,7 @@ enum AlertType: Identifiable {
         case .bluetoothSuccess: return "bluetoothSuccess"
         case .bluetoothFailure: return "bluetoothFailure"
         case .busDeviceNotFound: return "busDeviceNotFound"
+        case .busNotSelected: return "busNotSelected"
         case .externalLink: return "externalLink"
         case .networkUnavailable: return "networkUnavailable"
         }
@@ -45,6 +47,7 @@ enum AlertType: Identifiable {
         case .locationUnauthorized: return 3
         case .bluetoothUnsupported, .bluetoothUnauthorized: return 2
         case .bluetoothConfirm, .bluetoothSuccess, .bluetoothFailure, .busDeviceNotFound: return 1
+        case .busNotSelected: return 1
         case .noBusInfo: return 1
         case .apiError: return 0
         case .externalLink: return 1
@@ -71,6 +74,8 @@ enum AlertType: Identifiable {
             return "버스 배려석 알림 전송에 실패하였습니다."
         case .busDeviceNotFound:
             return "알림 기기를 찾을 수 없음"
+        case .busNotSelected:
+            return "버스 선택 필요"
         case .externalLink:
             return "외부 링크 이동"
         case .networkUnavailable:
@@ -98,6 +103,8 @@ enum AlertType: Identifiable {
             return "다시 한번 시도해주세요."
         case .busDeviceNotFound:
             return "해당 버스에 알림 기기가 설치되지 않았거나,\n현재 신호가 약하여 연결할 수 없습니다."
+        case .busNotSelected:
+            return "탑승할 버스를 선택하고 알림버튼을 눌러주세요"
         case .externalLink(let pageName, _, _):
             return "'\(pageName)' 페이지로 이동하시겠습니까?\n앱을 벗어나 브라우저가 실행됩니다."
         case .networkUnavailable:
@@ -111,7 +118,7 @@ enum AlertType: Identifiable {
             return true
         case .noBusInfo, .apiError, .bluetoothConfirm, .bluetoothSuccess, .bluetoothFailure:
             return false
-        case .busDeviceNotFound:
+        case .busDeviceNotFound, .busNotSelected:
             return false
         case .externalLink:
             return false
