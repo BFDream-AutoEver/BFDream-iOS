@@ -437,6 +437,9 @@ struct HomeView: View {
 
     // MARK: - 위치 새로고침
     private func refreshLocation() {
+        // 버튼 상태 초기화
+        resetButtonState()
+
         guard let location = locationManager.currentLocation else {
             locationManager.refreshLocation()
             return
