@@ -99,10 +99,37 @@ struct A11yLabels {
     static let notificationButtonValueUnselected = "비활성화됨"
 
     // MARK: - Bus Selection
-    static func busSelection(routeName: String, isSelected: Bool) -> String {
-        "\(routeName)번 버스 선택"
+    static func busSelection(routeName: String, busType: String, arrivalMsg: String?, congestion: String?, direction: String?, isSelected: Bool) -> String {
+        var msg = ""
+
+        // 버스 번호와 종류
+        if !busType.isEmpty {
+            msg += "\(routeName)번 \(busType) 버스, "
+        } else {
+            msg += "\(routeName)번 버스, "
+        }
+
+        // 방면
+        if let dir = direction {
+            msg += "\(dir) 방면, "
+        }
+
+        // 도착 정보
+        if let arrival = arrivalMsg {
+            msg += "\(arrival), "
+        }
+
+        // 혼잡도
+        if let cong = congestion {
+            msg += "혼잡도는 \(cong)입니다, "
+        }
+
+        // 선택 상태
+        msg += isSelected ? "선택됨" : "선택 안 됨"
+
+        return msg
     }
-    
+
     static func busSelectionValue(isSelected: Bool) -> String {
         isSelected ? "선택됨" : "선택 안 됨"
     }
@@ -204,6 +231,38 @@ struct A11yLabels {
             msg += " \(dir) 방면."
         }
         msg += " 배려석 알림 전송 버튼이 활성화되었습니다."
+        return msg
+    }
+
+    // MARK: - Bus Info Label (자연스러운 음성 안내)
+    static func busInfoLabel(routeName: String, busType: String, arrivalMsg: String?, congestion: String?, direction: String?) -> String {
+        var msg = ""
+
+        // 버스 번호와 종류
+        if !busType.isEmpty {
+            msg += "\(routeName)번 \(busType) 버스, "
+        } else {
+            msg += "\(routeName)번 버스, "
+        }
+
+        // 방면
+        if let dir = direction {
+            msg += "\(dir) 방면, "
+        }
+
+        // 도착 정보
+        if let arrival = arrivalMsg {
+            msg += "\(arrival), "
+        }
+
+        // 혼잡도
+        if let cong = congestion {
+            msg += "혼잡도는 \(cong)입니다"
+        } else {
+            // 마지막 쉼표 제거
+            msg = msg.trimmingCharacters(in: CharacterSet(charactersIn: ", "))
+        }
+
         return msg
     }
 }
