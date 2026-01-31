@@ -200,13 +200,13 @@ struct OnBoardingView: View {
             Text(createAttributedString(from: title, highlight: "맘편한 이동", color: Color("MainPalette1")))
                 .moveFont(.homeTitle)
         case 1:
-            Text(createAttributedString(from: title, highlight: "제로", color: Color("SecondaryPalette4")))
+            Text(createAttributedString(from: title, highlight: "제로", color: Color("MainPalette1")))
                 .moveFont(.homeTitle)
         case 2:
-            Text(createAttributedString(from: title, highlight: "간편하게", color: Color("SecondaryPalette3")))
+            Text(createAttributedString(from: title, highlight: "간편하게", color: Color("MainPalette1")))
                 .moveFont(.homeTitle)
         case 3:
-            Text(createAttributedString(from: title, highlight: "임산부", color: Color("Onboarding4")))
+            Text(createAttributedString(from: title, highlight: "임산부", color: Color("MainPalette1")))
                 .moveFont(.homeTitle)
         case 4:
             Text(createAttributedString(from: title, highlight: "맘편한 이동", color: Color("MainPalette1")))
