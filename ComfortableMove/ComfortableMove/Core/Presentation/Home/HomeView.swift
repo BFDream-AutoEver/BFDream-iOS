@@ -34,6 +34,7 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     headerSection(topInset: geometry.safeAreaInsets.top)
                     mainContentSection
+                    
                 }
                 .background(Color("BFPrimaryColor"))
                 .ignoresSafeArea(.all, edges: .top)
@@ -438,13 +439,37 @@ struct HomeView: View {
         // Bluetooth 응답 대기 상태 시작
         isWaitingForBluetooth = true
 
-        bluetoothManager.sendCourtesySeatNotification(busNumber: selectedBusName, withSound: isSoundEnabled) { result in
+        // 백엔드 boarding 기록용 컨텍스트 캡처 (resetButtonState 이전에 확보)
+        let busName = selectedBusName
+        let routeType = busArrivals.first(where: { $0.id == selectedBusID })?.busType.displayName
+        let stationSnapshot = nearestStation
+        let coordinate = locationManager.currentLocation?.coordinate
+        let translatedBusNumber = DistrictMapper.shared.translateBusNumber(busName)
+        let busDeviceId = "BF_DREAM_\(translatedBusNumber)"
+        let soundEnabled = isSoundEnabled
+
+        bluetoothManager.sendCourtesySeatNotification(busNumber: busName, withSound: soundEnabled) { result in
             DispatchQueue.main.async {
                 Logger.log(message: "📲 Bluetooth 전송 결과: \(result)")
 
                 // Bluetooth 응답 대기 상태 종료 및 버튼 상태 초기화 (Alert 표시 전에 먼저 처리)
                 isWaitingForBluetooth = false
                 resetButtonState()
+
+                // 백엔드 boarding/record 비동기 기록 (UX 차단 X — fire-and-forget)
+                let status = BoardingRecordService.NotificationStatus.from(result)
+                Task.detached(priority: .background) {
+                    await BoardingRecordService.shared.record(
+                        routeName: busName,
+                        routeType: routeType,
+                        busDeviceId: busDeviceId,
+                        station: stationSnapshot,
+                        latitude: coordinate?.latitude,
+                        longitude: coordinate?.longitude,
+                        soundEnabled: soundEnabled,
+                        status: status
+                    )
+                }
 
                 switch result {
                 case .success:
@@ -487,7 +512,7 @@ struct HomeView: View {
 
         Task {
             do {
-                let stations = try await BusStopService.shared.getNearbyStations(location: location, radius: 100)
+                let stations = try await BusStopService.shared.getNearbyStations(location: location, radius: 500)
 
                 // 가장 가까운 정류소 선택
                 if let nearest = stations.first {
