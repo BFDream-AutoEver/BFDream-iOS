@@ -19,6 +19,12 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>같은 Wi-Fi의 백엔드 서버와 통신하기 위해 로컬 네트워크 접근이 필요합니다.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+	</array>
 	<key>RX_CHARACTERISTIC_UUID</key>
 	<string>$(RX_CHARACTERISTIC_UUID)</string>
 	<key>TX_CHARACTERISTIC_UUID</key>
