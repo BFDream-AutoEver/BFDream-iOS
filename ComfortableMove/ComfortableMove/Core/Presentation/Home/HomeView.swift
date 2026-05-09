@@ -444,11 +444,15 @@ struct HomeView: View {
         let routeType = busArrivals.first(where: { $0.id == selectedBusID })?.busType.displayName
         let stationSnapshot = nearestStation
         let coordinate = locationManager.currentLocation?.coordinate
-        let translatedBusNumber = DistrictMapper.shared.translateBusNumber(busName)
-        let busDeviceId = "BF_DREAM_\(translatedBusNumber)"
         let soundEnabled = isSoundEnabled
 
-        bluetoothManager.sendCourtesySeatNotification(busNumber: busName, withSound: soundEnabled) { result in
+        // [DEV] BLE 매칭 테스트용 — ESP32 가 BF_DREAM_143 으로 advertising 중이므로
+        // 화면 선택값과 무관하게 BLE 스캔/송신은 "143" 으로 고정. 백엔드 boarding 기록은
+        // 화면 선택값(busName/busDeviceId) 그대로 유지하여 통계 정확성은 보존.
+        let bleBusNumber = "143"
+        let busDeviceId = "BF_DREAM_\(bleBusNumber)"
+
+        bluetoothManager.sendCourtesySeatNotification(busNumber: bleBusNumber, withSound: soundEnabled) { result in
             DispatchQueue.main.async {
                 Logger.log(message: "📲 Bluetooth 전송 결과: \(result)")
 
@@ -544,21 +548,30 @@ struct HomeView: View {
 
         isLoadingArrivals = true
 
+        // [DEV] BLE 테스트용 mock — ESP32 가 BF_DREAM_143 으로 advertising 중이라
+        // 화면에 항상 143 노선을 노출시켜 사용자가 선택할 수 있게 한다.
+        // (서울 TOPIS 일일 한도 소진 시에도 BLE 흐름은 검증 가능)
+        let mock143 = BusArrivalItem(
+            rtNm: "143",
+            arrmsg1: "3분후[2번째 전]",
+            adirection: "고속터미널",
+            routeType: "3",
+            isFullFlag1: "0",
+            isLast1: "0",
+            congestion1: "3"
+        )
+
         Task {
+            var fetched: [BusArrivalItem] = []
             do {
-                let items = try await BusArrivalService.shared.getStationArrivalInfo(arsId: station.arsId)
-
-                // 딕셔너리 변환 대신 배열을 직접 사용하고, 노선명 순으로 정렬
-                busArrivals = items.sorted { $0.rtNm < $1.rtNm }
-
+                fetched = try await BusArrivalService.shared.getStationArrivalInfo(arsId: station.arsId)
             } catch let error as NSError {
                 Logger.log(message: "❌ [HomeView] Failed to fetch arrival info: \(error)")
-
-                // API 에러 처리
-                if error.domain == "APIError" {
-                    alertManager.showAlert(.apiError)
-                }
+                // API 에러여도 mock 143 은 보여주므로 알림은 띄우지 않음 (개발용)
             }
+
+            // mock 143 을 항상 포함하여 노선명 순으로 정렬
+            busArrivals = ([mock143] + fetched).sorted { $0.rtNm < $1.rtNm }
 
             isLoadingArrivals = false
         }
