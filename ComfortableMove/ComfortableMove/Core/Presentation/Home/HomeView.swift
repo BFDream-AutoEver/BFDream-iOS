@@ -446,9 +446,12 @@ struct HomeView: View {
         let coordinate = locationManager.currentLocation?.coordinate
         let soundEnabled = isSoundEnabled
 
-        // BLE 스캔/송신 대상 = 화면에서 선택한 노선. ESP32 기기는 BF_DREAM_<노선명> 으로 advertising.
+        // BLE 스캔/송신 대상 = 화면에서 선택한 노선. 한글 노선명은 BluetoothManager 내부(DistrictMapper)
+        // 에서 영문으로 변환되어 BF_DREAM_<영문> 기기와 매칭된다 (예: 강동01 → Gangdong01).
+        // 기록용 busDeviceId 도 실제 기기명과 일치하도록 동일한 변환값을 사용한다.
         let bleBusNumber = busName
-        let busDeviceId = "BF_DREAM_\(bleBusNumber)"
+        let translatedBusNumber = DistrictMapper.shared.translateBusNumber(busName)
+        let busDeviceId = "BF_DREAM_\(translatedBusNumber)"
 
         bluetoothManager.sendCourtesySeatNotification(busNumber: bleBusNumber, withSound: soundEnabled) { result in
             DispatchQueue.main.async {
