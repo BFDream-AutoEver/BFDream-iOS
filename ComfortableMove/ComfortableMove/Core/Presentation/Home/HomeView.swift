@@ -446,10 +446,8 @@ struct HomeView: View {
         let coordinate = locationManager.currentLocation?.coordinate
         let soundEnabled = isSoundEnabled
 
-        // [DEV] BLE 매칭 테스트용 — ESP32 가 BF_DREAM_143 으로 advertising 중이므로
-        // 화면 선택값과 무관하게 BLE 스캔/송신은 "143" 으로 고정. 백엔드 boarding 기록은
-        // 화면 선택값(busName/busDeviceId) 그대로 유지하여 통계 정확성은 보존.
-        let bleBusNumber = "143"
+        // BLE 스캔/송신 대상 = 화면에서 선택한 노선. ESP32 기기는 BF_DREAM_<노선명> 으로 advertising.
+        let bleBusNumber = busName
         let busDeviceId = "BF_DREAM_\(bleBusNumber)"
 
         bluetoothManager.sendCourtesySeatNotification(busNumber: bleBusNumber, withSound: soundEnabled) { result in
@@ -548,30 +546,16 @@ struct HomeView: View {
 
         isLoadingArrivals = true
 
-        // [DEV] BLE 테스트용 mock — ESP32 가 BF_DREAM_143 으로 advertising 중이라
-        // 화면에 항상 143 노선을 노출시켜 사용자가 선택할 수 있게 한다.
-        // (서울 TOPIS 일일 한도 소진 시에도 BLE 흐름은 검증 가능)
-        let mock143 = BusArrivalItem(
-            rtNm: "143",
-            arrmsg1: "3분후[2번째 전]",
-            adirection: "고속터미널",
-            routeType: "3",
-            isFullFlag1: "0",
-            isLast1: "0",
-            congestion1: "3"
-        )
-
         Task {
             var fetched: [BusArrivalItem] = []
             do {
                 fetched = try await BusArrivalService.shared.getStationArrivalInfo(arsId: station.arsId)
             } catch let error as NSError {
                 Logger.log(message: "❌ [HomeView] Failed to fetch arrival info: \(error)")
-                // API 에러여도 mock 143 은 보여주므로 알림은 띄우지 않음 (개발용)
             }
 
-            // mock 143 을 항상 포함하여 노선명 순으로 정렬
-            busArrivals = ([mock143] + fetched).sorted { $0.rtNm < $1.rtNm }
+            // 실제 도착 정보를 노선명 순으로 정렬
+            busArrivals = fetched.sorted { $0.rtNm < $1.rtNm }
 
             isLoadingArrivals = false
         }
